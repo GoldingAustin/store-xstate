@@ -416,7 +416,7 @@ describe('legend useActor test', () => {
     );
     const counterService = interpret(counterMachine).start();
 
-    const Counter = () => {
+    const Counter = observer(() => {
       const [state, send] = useActor(counterService);
 
       return (
@@ -431,7 +431,7 @@ describe('legend useActor test', () => {
           {state.context.count.get()}
         </div>
       );
-    };
+    });
 
     render(
       <>

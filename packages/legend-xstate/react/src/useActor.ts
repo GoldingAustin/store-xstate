@@ -22,15 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { useActor as useXstateActor } from '@xstate/react';
-import { useCallback } from 'react';
 import { ActorRef, EventObject, Sender } from 'xstate';
 import { useService } from './useService';
+import { useCallback, useLayoutEffect, useRef } from 'react';
 
-type EmittedFromActorRef<
-  TActor extends ActorRef<any, any>
-  > = TActor extends ActorRef<any, infer TEmitted> ? TEmitted : never;
+type EmittedFromActorRef<TActor extends ActorRef<any, any>> = TActor extends ActorRef<any, infer TEmitted>
+  ? TEmitted
+  : never;
 
+function isDeferredActor<T extends ActorRef<any>>(actorRef: T): actorRef is T & { deferred: boolean } {
+  return 'deferred' in actorRef;
+}
 function defaultGetSnapshot<TEmitted>(actorRef: ActorRef<any, TEmitted>): TEmitted | undefined {
   return 'getSnapshot' in actorRef ? actorRef.getSnapshot() : 'state' in actorRef ? (actorRef as any).state : undefined;
 }
@@ -45,14 +47,36 @@ export function useActor<TEvent extends EventObject, TEmitted>(
 ): [TEmitted, Sender<TEvent>];
 export function useActor(
   actorRef: ActorRef<EventObject, unknown>,
-  getSnapshot: (
-    actor: ActorRef<EventObject, unknown>
-  ) => unknown = defaultGetSnapshot
+  getSnapshot: (actor: ActorRef<EventObject, unknown>) => unknown = defaultGetSnapshot
 ): [unknown, Sender<EventObject>] {
-  const [, send] = useXstateActor(actorRef, getSnapshot);
+  const actorRefRef = useRef(actorRef);
+  const deferredEventsRef = useRef<(EventObject | string)[]>([]);
+  const boundGetSnapshot = useCallback(() => getSnapshot(actorRef), [actorRef, getSnapshot]);
+  const send: Sender<EventObject> = useCallback( (...args) => {
+    const event = args[0];
+    if (process.env.NODE_ENV !== 'production' && args.length > 1) {
+      console.warn(
+        `Unexpected payload: ${JSON.stringify(
+          (args as any)[1]
+        )}. Only a single event object can be sent to actor send() functions.`
+      );
+    }
+    const currentActorRef = actorRefRef.current;
+    if (isDeferredActor(currentActorRef) && currentActorRef.deferred) {
+      deferredEventsRef.current.push(event);
+    } else {
+      currentActorRef.send(event);
+    }
+  }, []);
 
-  const snapshot = useCallback(() => getSnapshot(actorRef), [actorRef, getSnapshot]);
-  const [state] = useService(actorRef as any, snapshot);
+  useLayoutEffect(() => {
+    actorRefRef.current = actorRef;
+    while (deferredEventsRef.current.length > 0) {
+      const deferredEvent = deferredEventsRef.current.shift()!;
+      actorRef.send(deferredEvent);
+    }
+  }, [actorRef]);
 
+  const [state] = useService(actorRef as any, boundGetSnapshot);
   return [state, send];
 }
