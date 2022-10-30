@@ -1,0 +1,18 @@
+---
+language: typescript
+tasks:
+  build:
+    command:
+      - vite
+      - build
+    deps:
+      - 'legend-xstate-react:build-dep1'
+  build-dep1:
+    command: tsc
+  dev:
+    command: vite
+    local: true
+  test:
+    command:
+      - vitest
+      - run

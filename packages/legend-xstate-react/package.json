@@ -1,0 +1,47 @@
+{
+  "name": "legend-xstate-react",
+  "author": {
+    "name": "Austin Golding",
+    "email": "austin.golding.dev@icloud.com"
+  },
+  "description": "Use Legend-State & XState in React",
+  "license": "MIT",
+  "sideEffects": false,
+  "version": "0.1.0",
+  "keywords": [
+    "xstate",
+    "state machine",
+    "statechart",
+    "state",
+    "context",
+    "react",
+    "state"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoldingAustin/store-xstate"
+  },
+  "source": "src/index.ts",
+  "type": "module",
+  "prettier": {
+    "printWidth": 120,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "@legendapp/state": "^0.21.7",
+    "@testing-library/react": "^13.4.0",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^2.2.0",
+    "@xstate/react": "^3.0.1",
+    "jsdom": "^20.0.1",
+    "prettier": "^2.7.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^4.8.4",
+    "vite": "^3.2.0",
+    "vitest": "^0.24.3",
+    "xstate": "^4.33.6"
+  }
+}

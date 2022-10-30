@@ -1,0 +1,45 @@
+{
+  "name": "store-xstate",
+  "author": {
+    "name": "Austin Golding",
+    "email": "austin.golding.dev@icloud.com"
+  },
+  "description": "Optimize XState context with observable stores",
+  "license": "MIT",
+  "sideEffects": false,
+  "version": "0.1.1",
+  "workspaces": [
+    "packages/**/*"
+  ],
+  "keywords": [
+    "xstate",
+    "state machine",
+    "statechart",
+    "state",
+    "context",
+    "react",
+    "state"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoldingAustin/store-xstate"
+  },
+  "scripts": {
+    "build-legend": "yarn moon run legend-xstate:build && yarn moon run legend-xstate-react:build",
+    "moon": "$(yarn bin moon)",
+    "test": "yarn moon run :test"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "@moonrepo/cli": "^0.17.0",
+    "prettier": "^2.7.1"
+  },
+  "engines": {
+    "node": "18.12.0"
+  },
+  "packageManager": "yarn@3.2.4"
+}

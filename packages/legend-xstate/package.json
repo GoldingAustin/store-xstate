@@ -1,0 +1,80 @@
+{
+  "name": "legend-xstate",
+  "author": {
+    "name": "Austin Golding",
+    "email": "austin.golding.dev@icloud.com"
+  },
+  "description": "Power your XState context with Legend-State",
+  "license": "MIT",
+  "sideEffects": false,
+  "version": "0.2.0",
+  "keywords": [
+    "xstate",
+    "state machine",
+    "statechart",
+    "state",
+    "store"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoldingAustin/store-xstate"
+  },
+  "source": "src/index.ts",
+  "type": "module",
+  "files": [
+    "dist/**",
+    "types/**",
+    "react/dist/**",
+    "react/types/**"
+  ],
+  "main": "./dist/legend-xstate.cjs",
+  "module": "./dist/legend-xstate.js",
+  "types": "./types/index.d.ts",
+  "typings": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/legend-xstate.js",
+      "require": "./dist/legend-xstate.cjs"
+    },
+    "./dist/*": "./dist/*",
+    "./react": {
+      "import": "./react/dist/legend-xstate-react.js",
+      "require": "./react/dist/legend-xstate-react.cjs",
+      "types": "./react/types/index.d.ts"
+    },
+    "./react/dist/*": "./react/dist/*"
+  },
+  "peerDependencies": {
+    "@legendapp/state": "^0.21.0",
+    "@xstate/react": "^3",
+    "react": ">=16.8",
+    "xstate": "^4"
+  },
+  "peerDependenciesMeta": {
+    "@legendapp/state": {
+      "optional": false
+    },
+    "@xstate/react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "xstate": {
+      "optional": false
+    }
+  },
+  "prettier": {
+    "printWidth": 120,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "@legendapp/state": "^0.21.7",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4",
+    "vite": "^3.2.0",
+    "vitest": "^0.24.3",
+    "xstate": "^4.33.6"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "baseUrl": "./src",
+    "moduleResolution": "Node",
+    "strict": true,
+    "resolveJsonModule": false,
+    "esModuleInterop": true,
+    "noEmit": false,
+    "outDir": "../legend-xstate/react/types",
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "jsx": "react-jsx",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+    "types": [
+      "vitest/globals"
+    ],
+    "typeRoots": [
+      "../legend-xstate/react/types"
+    ],
+    "paths": {
+      "legend-xstate": [
+        "../../legend-xstate"
+      ]
+    }
+  },
+  "exclude": [
+    "./types"
+  ],
+  "include": [
+    "src"
+  ]
+}
