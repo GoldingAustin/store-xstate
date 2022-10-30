@@ -27,10 +27,10 @@ import { useActor, useMachine } from '../src';
 import { ActorRef, ActorRefFrom, createMachine, interpret, sendParent, spawn, toActorRef } from 'xstate';
 import React, { FC, useEffect, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { Store, createContext, assign } from 'legend-xstate';
+import { createContext, assign } from 'legend-xstate';
 import { vitest } from 'vitest';
 import { observer } from '@legendapp/state/react-components';
-import { OpaqueObject, opaqueObject } from '@legendapp/state';
+import { Observable, opaqueObject } from '@legendapp/state';
 
 describe('legend useActor test', () => {
 
@@ -134,17 +134,17 @@ describe('legend useActor test', () => {
     });
 
     interface Ctx {
-      actorRef?: ActorRefFrom<typeof childMachine>;
+      actorRef: undefined | ActorRefFrom<typeof childMachine>;
     }
 
-    const machine = createMachine<Store<Ctx>>({
+    const machine = createMachine<Observable<Ctx>>({
       initial: 'active',
       context: createContext({
         actorRef: undefined
-      }, false),
+      }),
       states: {
         active: {
-          entry: assign(({ store }) => {
+          entry: assign((store) => {
             store.actorRef?.set(opaqueObject(spawn(childMachine)));
           })
         }
@@ -165,7 +165,7 @@ describe('legend useActor test', () => {
 
     const Test = () => {
       const [state] = useMachine(machine);
-      const { actorRef } = state.context.store;
+      const { actorRef } = state.context;
 
       return <ChildTest actor={actorRef?.get()!} />;
     };
@@ -185,17 +185,17 @@ describe('legend useActor test', () => {
         }
       }
     });
-    const machine = createMachine<Store<{
+    const machine = createMachine<Observable<{
       actorRef: undefined | ActorRefFrom<typeof childMachine>;
     }>>({
       initial: 'active',
       context: createContext({
         actorRef: undefined
-      }, false),
+      }),
       states: {
         active: {
-          entry: assign(({ store }) => {
-            store.actorRef.set(() => opaqueObject(spawn(childMachine)))
+          entry: assign((store) => {
+            store.actorRef?.set(() => opaqueObject(spawn(childMachine)))
           }),
           on: { FINISH: 'success' }
         },
@@ -224,7 +224,7 @@ describe('legend useActor test', () => {
         done();
       }
 
-      return <ChildTest actor={state.context.store.actorRef.get()!} />;
+      return <ChildTest actor={state.context.actorRef.get()!} />;
     });
 
     render(<Test />);
@@ -391,7 +391,7 @@ describe('legend useActor test', () => {
   }));
 
   test('should also work with services', () => {
-    const counterMachine = createMachine<Store<{ count: number }>,
+    const counterMachine = createMachine<Observable<{ count: number }>,
       { type: 'INC' } | { type: 'SOMETHING' }>(
       {
         id: 'counter',
@@ -400,7 +400,7 @@ describe('legend useActor test', () => {
         states: {
           active: {
             on: {
-              INC: { actions: assign(({ store }) => store.count.set(c => c + 1)) },
+              INC: { actions: assign((store) => store.count.set(c => c + 1)) },
               SOMETHING: { actions: 'doSomething' }
             }
           }
@@ -428,7 +428,7 @@ describe('legend useActor test', () => {
             send('FAKE');
           }}
         >
-          {state.context.store.count.get()}
+          {state.context.count.get()}
         </div>
       );
     };
@@ -458,7 +458,7 @@ describe('legend useActor test', () => {
   });
 
   test('should work with initially deferred actors spawned in lazy context', () => {
-    const childMachine = createMachine({
+    const childMachine = createMachine<undefined, {type: 'NEXT'}>({
       initial: 'one',
       states: {
         one: {
@@ -468,10 +468,10 @@ describe('legend useActor test', () => {
       }
     });
 
-    const machine = createMachine<Store<{ ref: OpaqueObject<ActorRef<any>> }>>({
-      context: () => createContext({
-        ref: opaqueObject(spawn(childMachine))
-      }, false),
+    const machine = createMachine<Observable<{ ref: ActorRef<any> }>>({
+      context: () => createContext(({
+        ref: opaqueObject(spawn(childMachine) as any)
+      })),
       initial: 'waiting',
       states: {
         waiting: {
@@ -485,7 +485,7 @@ describe('legend useActor test', () => {
 
     const App = observer(() => {
       const [state] = useMachine(machine);
-      const [childState, childSend] = useActor(state.context.store.ref.get());
+      const [childState, childSend] = useActor(state.context.ref.get());
 
       return (
         <>

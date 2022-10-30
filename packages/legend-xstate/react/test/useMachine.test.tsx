@@ -36,19 +36,18 @@ import {
   spawn,
   State,
 } from 'xstate';
-import { assign, Store, createContext } from 'legend-xstate';
+import { assign, createContext } from 'legend-xstate';
 import { useActor, useMachine } from '../src';
 import { FC, useCallback, useState } from 'react';
 import { vitest } from 'vitest';
-import { opaqueObject } from '@legendapp/state';
+import { Observable, opaqueObject } from '@legendapp/state';
 import { observer } from '@legendapp/state/react-components';
 
 describe('legend useMachine test', () => {
   const context = {
     data: undefined,
   };
-  const fetchMachine = () =>
-    createMachine<Store<typeof context>, { type: 'FETCH' } | DoneEventObject>({
+  const fetchMachine = () => createMachine<Observable<typeof context>, { type: 'FETCH' } | DoneEventObject>({
       id: 'fetch',
       initial: 'idle',
       context: createContext({
@@ -64,7 +63,7 @@ describe('legend useMachine test', () => {
             src: 'fetchData',
             onDone: {
               target: 'success',
-              actions: assign(({ store }, e) => store.data.set(e.data)),
+              actions: assign((store, e) => store.data.set(e.data)),
               cond: (_, e) => e.data.length,
             },
           },
@@ -96,7 +95,7 @@ describe('legend useMachine test', () => {
       case 'success':
         return (
           <div>
-            Success! Data: <div data-testid="data">{current.context.store.data.get()}</div>
+            Success! Data: <div data-testid="data">{current.context.data.get()}</div>
           </div>
         );
       default:
@@ -124,7 +123,7 @@ describe('legend useMachine test', () => {
 
   test('should work with the useMachine hook (rehydrated state config)', async () => {
     const persistedFetchStateConfig = JSON.parse(
-      JSON.stringify({ ...persistedFetchState, context: { store: persistedFetchState.context.store.get() } })
+      JSON.stringify({ ...persistedFetchState, context: persistedFetchState.context.get() })
     );
     render(
       <Fetcher onFetch={() => new Promise((res) => res('fake data'))} persistedState={persistedFetchStateConfig} />
@@ -191,13 +190,13 @@ describe('legend useMachine test', () => {
 
   test('should not spawn actors until service is started', () =>
     new Promise<void>(async (done) => {
-      const spawnMachine = createMachine<Store<any>>({
+      const spawnMachine = createMachine<any>({
         id: 'spawn',
         initial: 'start',
         context: createContext({ ref: undefined }),
         states: {
           start: {
-            entry: assign(({ store }) => {
+            entry: assign((store) => {
               store.ref.set(opaqueObject(spawn(() => new Promise((res) => res(42)), 'my-promise')));
             }),
             on: {
@@ -746,15 +745,15 @@ describe('legend useMachine test', () => {
   });
 
   test('should not miss initial synchronous updates', () => {
-    const m = createMachine<Store<{ count: number }>>({
+    const m = createMachine<Observable<{ count: number }>>({
       initial: 'idle',
       context: createContext({
         count: 0,
       }),
-      entry: [assign((c) => c.store.assign({ count: 1 })), send('INC')],
+      entry: [assign((c) => c.assign({ count: 1 })), send('INC')],
       on: {
         INC: {
-          actions: [assign((c) => c.store.count.set((c) => c + 1)), send('UNHANDLED')],
+          actions: [assign((c) => c.count.set((c) => c + 1)), send('UNHANDLED')],
         },
       },
       states: {
@@ -764,7 +763,7 @@ describe('legend useMachine test', () => {
 
     const App = observer(() => {
       const [state] = useMachine(m);
-      return <>{state.context.store.count.get()}</>;
+      return <>{state.context.count.get()}</>;
     });
 
     const { container } = render(<App />);

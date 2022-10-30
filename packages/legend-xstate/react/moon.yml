@@ -7,10 +7,9 @@ tasks:
       - build
     deps:
       - 'legend-xstate:build'
-      - 'legend-xstate-react:build-dep1'
-  build-dep1:
+      - 'legend-xstate-react:typecheck'
+  typecheck:
     command: tsc
-    arg: --emptyOutDir
   dev:
     command: vite
     local: true

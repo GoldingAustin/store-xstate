@@ -25,7 +25,7 @@
     "url": "https://github.com/GoldingAustin/store-xstate"
   },
   "scripts": {
-    "build-legend": "yarn moon run legend-xstate:build && yarn moon run legend-xstate-react:build",
+    "build:legend": "yarn moon run legend-xstate:build && yarn moon run legend-xstate-react:build",
     "moon": "$(yarn bin moon)",
     "test": "yarn moon run :test"
   },

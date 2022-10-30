@@ -1,1 +1,3 @@
-export { useMachine, useActor, useStateStore } from './legend-xstate-react';
+export {useMachine} from './useMachine';
+export {useActor} from './useActor';
+export {useService} from './useService';

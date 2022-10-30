@@ -6,8 +6,8 @@ tasks:
       - vite
       - build
     deps:
-      - 'legend-xstate:build-dep1'
-  build-dep1:
+      - 'legend-xstate:typecheck'
+  typecheck:
     command: tsc
   dev:
     command: vite
