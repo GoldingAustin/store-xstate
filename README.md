@@ -1,6 +1,6 @@
 # Store + XState
 
-store-xstate is an experiment into using other state management options in XState's context, making it easier to work with and the React integration more performant.
+store-xstate is an experiment into using other state management options in XState's context, making context easier to work with + the React integration more performant.
 
 There is currently a working (experimental) Legend-State integration with a supporting test suite.
 
