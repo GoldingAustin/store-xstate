@@ -13,7 +13,7 @@
     "resolveJsonModule": false,
     "esModuleInterop": true,
     "noEmit": false,
-    "outDir": "../legend-xstate/react/types",
+    "outDir": "../core/react/types",
     "emitDeclarationOnly": true,
     "declaration": true,
     "jsx": "react-jsx",
@@ -25,11 +25,11 @@
       "vitest/globals"
     ],
     "typeRoots": [
-      "../legend-xstate/react/types"
+      "../core/react/types"
     ],
     "paths": {
       "legend-xstate": [
-        "../../legend-xstate"
+        "../../core"
       ]
     }
   },

@@ -6,13 +6,17 @@ tasks:
       - vite
       - build
     deps:
+      - 'legend-xstate:build'
       - 'legend-xstate-react:build-dep1'
   build-dep1:
     command: tsc
+    arg: --emptyOutDir
   dev:
     command: vite
     local: true
   test:
+    deps:
+      - 'legend-xstate:build'
     command:
       - vitest
       - run

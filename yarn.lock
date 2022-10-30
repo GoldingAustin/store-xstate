@@ -2156,9 +2156,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"legend-xstate-react@workspace:packages/legend-xstate-react":
+"legend-xstate-react@workspace:packages/legend-xstate/react":
   version: 0.0.0-use.local
-  resolution: "legend-xstate-react@workspace:packages/legend-xstate-react"
+  resolution: "legend-xstate-react@workspace:packages/legend-xstate/react"
   dependencies:
     "@legendapp/state": ^0.21.7
     "@testing-library/react": ^13.4.0
@@ -2174,26 +2174,12 @@ __metadata:
     vite: ^3.2.0
     vitest: ^0.24.3
     xstate: ^4.33.6
-  peerDependencies:
-    "@legendapp/state": ^0.21.0
-    "@xstate/react": ^3
-    react: ">=16.8"
-    xstate: ^4
-  peerDependenciesMeta:
-    "@legendapp/state":
-      optional: false
-    "@xstate/react":
-      optional: false
-    react:
-      optional: false
-    xstate:
-      optional: false
   languageName: unknown
   linkType: soft
 
-"legend-xstate@workspace:packages/legend-xstate":
+"legend-xstate@workspace:packages/legend-xstate/core":
   version: 0.0.0-use.local
-  resolution: "legend-xstate@workspace:packages/legend-xstate"
+  resolution: "legend-xstate@workspace:packages/legend-xstate/core"
   dependencies:
     "@legendapp/state": ^0.21.7
     prettier: ^2.7.1

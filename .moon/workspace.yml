@@ -9,8 +9,8 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 # path to the project folder as the map value. File paths are relative from the workspace root,
 # and cannot reference projects located outside the workspace boundary.
 projects:
-  legend-xstate: 'packages/legend-xstate'
-  legend-xstate-react: 'packages/legend-xstate-react'
+  legend-xstate: 'packages/legend-xstate/core'
+  legend-xstate-react: 'packages/legend-xstate/react'
 
 # Configures Node.js within the toolchain. moon manages its own version of Node.js
 # instead of relying on a version found on the host machine. This ensures deterministic

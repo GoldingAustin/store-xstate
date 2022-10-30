@@ -12,8 +12,6 @@ dist
 dist-ssr
 *.local
 types
-react
-
 
 # Editor directories and files
 .vscode/*

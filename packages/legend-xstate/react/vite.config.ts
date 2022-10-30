@@ -12,11 +12,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'legend-xstate': '../legend-xstate',
+      'legend-xstate': resolve(__dirname, '..', 'core'),
     },
   },
   build: {
-    outDir: resolve(__dirname, '..', 'legend-xstate', 'react', 'dist'),
+    outDir: resolve(__dirname, '..', 'core', 'react', 'dist'),
     lib: {
       entry: resolve(__dirname, 'src', 'index.ts'),
       name: 'LegendXStateReact',

@@ -26,10 +26,7 @@
   ],
   "references": [
     {
-      "path": "packages/legend-xstate"
-    },
-    {
-      "path": "packages/legend-xstate-react"
+      "path": "packages/legend-xstate/core"
     },
     {
       "path": "packages/legend-xstate/react"
