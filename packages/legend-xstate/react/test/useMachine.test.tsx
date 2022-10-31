@@ -47,7 +47,8 @@ describe('legend useMachine test', () => {
   const context = {
     data: undefined,
   };
-  const fetchMachine = () => createMachine<Observable<typeof context>, { type: 'FETCH' } | DoneEventObject>({
+  const fetchMachine = () =>
+    createMachine<Observable<typeof context>, { type: 'FETCH' } | DoneEventObject>({
       id: 'fetch',
       initial: 'idle',
       context: createContext({

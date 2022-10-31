@@ -2,11 +2,48 @@
 
 store-xstate is an experiment into using other state management options in XState's context, making context easier to work with + the React integration more performant.
 
-There is currently a working (experimental) Legend-State integration with a supporting test suite.
+There is a Legend-State integration with:
+
+- Observable and Computed context
+- Optimized React hooks
+- And a supporting test suite.
 
 Huge thanks to the XState & Legend-State teams <3
 
 ## legend-xstate (Legend-State + XState)
+
+```typescript
+import { interpret } from 'xstate';
+import { createContext } from 'legend-xstate';
+
+const countMachine = createMachine({
+  initial: 'start',
+  context: createContext(
+    {
+      count: 0,
+    },
+    (context) => ({
+      doubled: computed(() => context.count.get() * 2),
+    })
+  ),
+  states: {
+    start: {
+      on: {
+        INC: {
+          action: assign((context) => context.count.set((c) => c + 1)),
+        },
+      },
+    },
+  },
+});
+
+const service = interpret(countMachine).start();
+
+service.send({ type: 'INC' });
+
+service.state.context.count; // 1
+service.state.context.computed.double; // 2
+```
 
 Provides a core library (`legend-xstate`) usable with vanilla `xstate` and a React sub-library (`legend-xstate/react`) with XState React hooks optimized for Legend-State
 
@@ -30,22 +67,55 @@ Required peer dependencies for `legend-xstate/react`:
 
 ### Functions
 
-- `createContext`: Produces a observable context object. XState's context update flow requires the root context to be an object and not a Proxy, so `createContext` adds all the methods of an observable onto context.
+- `createContext(context, computed?): Context & {computed: Computed}`: Produces an observable context object with optional computed values. XState's context update flow requires the root context to be an object and not a Proxy, so `createContext` adds all the methods of an observable onto context.
+  - args:
+    - `context` XState context
+    - `computed` An optional callback function that provides the `Context` as a value and returns an object with computed values
+  - example:
+    ```typescript
+    const context = createContext(
+      // context
+      {
+        count: 1,
+      },
+      // computed callback
+      (context) => ({
+        doubled: computed(() => context.count.get() * 2),
+      })
+    );
+    context.count; // 1
+    context.computed.doube; // 2
+    ```
 - `assign`: Overrides XState's `assign` function to allow updates in the observable without the need to return a value.
+
+### Types
+
+- `Context<TypeContext, TypeComputed>`: A generic accepting the shape of the context object and optionally the shape of the computed object. The computed object is optional because it is not required to use Legend-State in XState.
+  - example:
+    ```typescript
+    createMachine<Context<{ count: number }, { doubled: number }>>({
+      context: createContext({
+        count: observable(1),
+        computed: (context) => ({
+          doubled: computed(() => context.count.get() * 2),
+        }),
+      }),
+    });
+    ```
 
 ### Notes
 
 - Actors need to be wrapped in `opaqueObject` from `@legendapp/state` if they are stored in context
-- `context` is a pseudo observable, meaning it's not a Proxy but it has the same methods as an observable. This shouldn't cause any issues (except you'll need to use `state.context.get()` in React when rendering the root context object), but it's worth noting.
+- If a computed is returning an `Observable` rather than the base value, the type passed into `Context` must be wrapped in `ObservableValue`
+- `context` is a pseudo observable, meaning it's not a Proxy, but it has the same methods as an observable. This shouldn't cause any issues (except you'll need to use `state.context.get()` in React when rendering the root context object), but it's worth noting.
 
 ### Example
 
 ```typescript
-import { createContext, assign } from 'legend-xstate';
+import { createContext, assign, Context } from 'legend-xstate';
 import { interpret } from 'xstate';
-import { Observable } from '@legendapp/state';
 // Wrap context type in `Observable` generic
-const counterMachine = createMachine<Observable<{ count: number }>>(
+const counterMachine = createMachine<Context<{ count: number }>>(
   {
     initial: 'active',
     // Use `createContext` to produce something similar to `observable({count: 0})`
@@ -99,7 +169,7 @@ const Counter = observer(() => {
   const [state, send] = useMachine(counterMachine);
   return (
     <div>
-      count is {state.context.count}
+      count is {state.context.count} // Changes to count will not rerender the whole component
       <button onClick={() => send({ type: 'INC' })}>INC</button>
       <button onClick={() => send({ type: 'DEC' })}>DEC</button>
     </div>
@@ -109,7 +179,7 @@ const Counter = observer(() => {
 
 #### TODO
 
-- Try to make typing the machine easier
+- Try to make typing the machine easier with observable & computed values
 - Add more tests
 
 # Building Development

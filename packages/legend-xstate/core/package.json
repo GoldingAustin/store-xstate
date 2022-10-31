@@ -7,12 +7,13 @@
   "description": "Power your XState context with Legend-State",
   "license": "MIT",
   "sideEffects": false,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "keywords": [
     "xstate",
     "state machine",
     "statechart",
     "state",
+    "proxy",
     "store"
   ],
   "repository": {
@@ -54,14 +55,14 @@
     "@legendapp/state": {
       "optional": false
     },
+    "xstate": {
+      "optional": false
+    },
     "@xstate/react": {
       "optional": true
     },
     "react": {
       "optional": true
-    },
-    "xstate": {
-      "optional": false
     }
   },
   "prettier": {

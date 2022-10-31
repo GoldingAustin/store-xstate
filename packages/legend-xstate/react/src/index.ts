@@ -1,3 +1,3 @@
-export {useMachine} from './useMachine';
-export {useActor} from './useActor';
-export {useService} from './useService';
+export { useMachine } from './useMachine';
+export { useActor } from './useActor';
+export { useService } from './useService';

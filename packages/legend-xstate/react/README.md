@@ -24,7 +24,7 @@ const Counter = observer(() => {
   const [state, send] = useMachine(counterMachine);
   return (
     <div>
-      count is {state.context.count}
+      count is {state.context.count} // Changes to count will not rerender the whole component
       <button onClick={() => send({ type: 'INC' })}>INC</button>
       <button onClick={() => send({ type: 'DEC' })}>DEC</button>
     </div>
@@ -34,5 +34,5 @@ const Counter = observer(() => {
 
 #### TODO
 
-- Try to make typing the machine easier
+- Try to make typing the machine easier with observable & computed values
 - Add more tests

@@ -27,13 +27,12 @@ import { useActor, useMachine } from '../src';
 import { ActorRef, ActorRefFrom, createMachine, interpret, sendParent, spawn, toActorRef } from 'xstate';
 import React, { FC, useEffect, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { createContext, assign } from 'legend-xstate';
+import { createContext, assign, Context } from 'legend-xstate';
 import { vitest } from 'vitest';
 import { observer } from '@legendapp/state/react-components';
 import { Observable, opaqueObject } from '@legendapp/state';
 
 describe('legend useActor test', () => {
-
   test('initial invoked actor should be immediately available', () =>
     new Promise<void>((done) => {
       const childMachine = createMachine({
@@ -73,162 +72,163 @@ describe('legend useActor test', () => {
       render(<Test />);
     }));
 
-  test('invoked actor should be able to receive (deferred) events that it replays when active', () => new Promise<void>((done) => {
-    const childMachine = createMachine({
-      id: 'childMachine',
-      initial: 'active',
-      states: {
-        active: {
-          on: {
-            FINISH: { actions: sendParent('FINISH') },
+  test('invoked actor should be able to receive (deferred) events that it replays when active', () =>
+    new Promise<void>((done) => {
+      const childMachine = createMachine({
+        id: 'childMachine',
+        initial: 'active',
+        states: {
+          active: {
+            on: {
+              FINISH: { actions: sendParent('FINISH') },
+            },
           },
         },
-      },
-    });
-    const machine = createMachine({
-      initial: 'active',
-      invoke: {
-        id: 'child',
-        src: childMachine,
-      },
-      states: {
-        active: {
-          on: { FINISH: 'success' },
+      });
+      const machine = createMachine({
+        initial: 'active',
+        invoke: {
+          id: 'child',
+          src: childMachine,
         },
-        success: {},
-      },
-    });
-
-    const ChildTest: FC<{ actor: ActorRefFrom<typeof childMachine> }> = ({ actor }) => {
-      const [state, send] = useActor(actor);
-
-      expect(state.value).toEqual('active');
-
-      useEffect(() => {
-        send({ type: 'FINISH' });
-      }, []);
-
-      return null;
-    };
-
-    const Test = () => {
-      const [state] = useMachine(machine);
-
-      if (state.matches('success')) {
-        done();
-      }
-
-      return <ChildTest actor={state.children.child as ActorRefFrom<typeof childMachine>} />;
-    };
-
-    render(<Test />);
-  }));
-
-  test('initial spawned actor should be immediately available', () => new Promise<void>((done) => {
-    const childMachine = createMachine({
-      id: 'childMachine',
-      initial: 'active',
-      states: {
-        active: {}
-      }
-    });
-
-    interface Ctx {
-      actorRef: undefined | ActorRefFrom<typeof childMachine>;
-    }
-
-    const machine = createMachine<Observable<Ctx>>({
-      initial: 'active',
-      context: createContext({
-        actorRef: undefined
-      }),
-      states: {
-        active: {
-          entry: assign((store) => {
-            store.actorRef?.set(opaqueObject(spawn(childMachine)));
-          })
-        }
-      }
-    });
-
-    const ChildTest: React.FC<{ actor: ActorRefFrom<typeof childMachine> }> = ({
-                                                                                 actor
-                                                                               }) => {
-      const [state] = useActor(actor);
-
-      expect(state.value).toEqual('active');
-
-      done();
-
-      return null;
-    };
-
-    const Test = () => {
-      const [state] = useMachine(machine);
-      const { actorRef } = state.context;
-
-      return <ChildTest actor={actorRef?.get()!} />;
-    };
-
-    render(<Test />);
-  }));
-
-  test('spawned actor should be able to receive (deferred) events that it replays when active', () => new Promise<void>((done) => {
-    const childMachine = createMachine({
-      id: 'childMachine',
-      initial: 'active',
-      states: {
-        active: {
-          on: {
-            FINISH: { actions: sendParent('FINISH') }
-          }
-        }
-      }
-    });
-    const machine = createMachine<Observable<{
-      actorRef: undefined | ActorRefFrom<typeof childMachine>;
-    }>>({
-      initial: 'active',
-      context: createContext({
-        actorRef: undefined
-      }),
-      states: {
-        active: {
-          entry: assign((store) => {
-            store.actorRef?.set(() => opaqueObject(spawn(childMachine)))
-          }),
-          on: { FINISH: 'success' }
+        states: {
+          active: {
+            on: { FINISH: 'success' },
+          },
+          success: {},
         },
-        success: {}
+      });
+
+      const ChildTest: FC<{ actor: ActorRefFrom<typeof childMachine> }> = ({ actor }) => {
+        const [state, send] = useActor(actor);
+
+        expect(state.value).toEqual('active');
+
+        useEffect(() => {
+          send({ type: 'FINISH' });
+        }, []);
+
+        return null;
+      };
+
+      const Test = () => {
+        const [state] = useMachine(machine);
+
+        if (state.matches('success')) {
+          done();
+        }
+
+        return <ChildTest actor={state.children.child as ActorRefFrom<typeof childMachine>} />;
+      };
+
+      render(<Test />);
+    }));
+
+  test('initial spawned actor should be immediately available', () =>
+    new Promise<void>((done) => {
+      const childMachine = createMachine({
+        id: 'childMachine',
+        initial: 'active',
+        states: {
+          active: {},
+        },
+      });
+
+      interface Ctx {
+        actorRef: undefined | ActorRefFrom<typeof childMachine>;
       }
-    });
 
-    const ChildTest: React.FC<{ actor: ActorRefFrom<typeof childMachine> }> = observer(({
-                                                                                 actor
-                                                                               }) => {
-      const [state, send] = useActor(actor);
+      const machine = createMachine<Context<Ctx>>({
+        initial: 'active',
+        context: createContext({
+          actorRef: undefined,
+        }),
+        states: {
+          active: {
+            entry: assign((store) => {
+              store.actorRef?.set(opaqueObject(spawn(childMachine)));
+            }),
+          },
+        },
+      });
 
-      expect(state.value).toEqual('active');
+      const ChildTest: React.FC<{ actor: ActorRefFrom<typeof childMachine> }> = ({ actor }) => {
+        const [state] = useActor(actor);
 
-      React.useEffect(() => {
-        send({ type: 'FINISH' });
-      }, []);
+        expect(state.value).toEqual('active');
 
-      return null;
-    });
-
-    const Test = observer(() => {
-      const [state] = useMachine(machine);
-
-      if (state.matches('success')) {
         done();
-      }
 
-      return <ChildTest actor={state.context.actorRef.get()!} />;
-    });
+        return null;
+      };
 
-    render(<Test />);
-  }));
+      const Test = () => {
+        const [state] = useMachine(machine);
+        const { actorRef } = state.context;
+
+        return <ChildTest actor={actorRef?.get()!} />;
+      };
+
+      render(<Test />);
+    }));
+
+  test('spawned actor should be able to receive (deferred) events that it replays when active', () =>
+    new Promise<void>((done) => {
+      const childMachine = createMachine({
+        id: 'childMachine',
+        initial: 'active',
+        states: {
+          active: {
+            on: {
+              FINISH: { actions: sendParent('FINISH') },
+            },
+          },
+        },
+      });
+      const machine = createMachine<
+        Observable<{
+          actorRef: undefined | ActorRefFrom<typeof childMachine>;
+        }>
+      >({
+        initial: 'active',
+        context: createContext({
+          actorRef: undefined,
+        }),
+        states: {
+          active: {
+            entry: assign((store) => {
+              store.actorRef?.set(() => opaqueObject(spawn(childMachine)));
+            }),
+            on: { FINISH: 'success' },
+          },
+          success: {},
+        },
+      });
+
+      const ChildTest: React.FC<{ actor: ActorRefFrom<typeof childMachine> }> = observer(({ actor }) => {
+        const [state, send] = useActor(actor);
+
+        expect(state.value).toEqual('active');
+
+        React.useEffect(() => {
+          send({ type: 'FINISH' });
+        }, []);
+
+        return null;
+      });
+
+      const Test = observer(() => {
+        const [state] = useMachine(machine);
+
+        if (state.matches('success')) {
+          done();
+        }
+
+        return <ChildTest actor={state.context.actorRef.get()!} />;
+      });
+
+      render(<Test />);
+    }));
 
   test('actor should provide snapshot value immediately', () => {
     const simpleActor = toActorRef({
@@ -240,9 +240,9 @@ describe('legend useActor test', () => {
         return {
           unsubscribe: () => {
             /* ... */
-          }
+          },
         };
-      }
+      },
     }) as ActorRef<any, number> & {
       latestValue: number;
     };
@@ -271,9 +271,9 @@ describe('legend useActor test', () => {
         return {
           unsubscribe: () => {
             /* ... */
-          }
+          },
         };
-      }
+      },
     });
 
     const Test = () => {
@@ -300,9 +300,9 @@ describe('legend useActor test', () => {
           return {
             unsubscribe: () => {
               /* ... */
-            }
+            },
           };
-        }
+        },
       }) as ActorRef<any> & { latestValue: number };
 
     const Test = observer(() => {
@@ -312,10 +312,7 @@ describe('legend useActor test', () => {
       return (
         <>
           <div data-testid="state">{state}</div>
-          <button
-            data-testid="button"
-            onClick={() => setActor(createSimpleActor(100))}
-          ></button>
+          <button data-testid="button" onClick={() => setActor(createSimpleActor(100))}></button>
         </>
       );
     });
@@ -330,69 +327,66 @@ describe('legend useActor test', () => {
     expect(div.textContent).toEqual('100');
   });
 
-  test('send() should be stable', () => new Promise<void>((done) => {
-    vitest.useFakeTimers();
-    const fakeSubscribe = () => {
-      return {
-        unsubscribe: () => {
-          /* ... */
-        }
+  test('send() should be stable', () =>
+    new Promise<void>((done) => {
+      vitest.useFakeTimers();
+      const fakeSubscribe = () => {
+        return {
+          unsubscribe: () => {
+            /* ... */
+          },
+        };
       };
-    };
-    const noop = () => {
-      /* ... */
-    };
-    const firstActor = toActorRef({
-      send: noop,
-      subscribe: fakeSubscribe
-    });
-    const lastActor = toActorRef({
-      send: () => {
-        done();
-      },
-      subscribe: fakeSubscribe
-    });
+      const noop = () => {
+        /* ... */
+      };
+      const firstActor = toActorRef({
+        send: noop,
+        subscribe: fakeSubscribe,
+      });
+      const lastActor = toActorRef({
+        send: () => {
+          done();
+        },
+        subscribe: fakeSubscribe,
+      });
 
-    const Test = () => {
-      const [actor, setActor] = useState(firstActor);
-      const [, send] = useActor(actor);
+      const Test = () => {
+        const [actor, setActor] = useState(firstActor);
+        const [, send] = useActor(actor);
 
-      React.useEffect(() => {
-        setTimeout(() => {
-          // The `send` here is closed-in
-          send({ type: 'anything' });
-        }, 10);
-      }, []); // Intentionally omit `send` from dependency array
+        React.useEffect(() => {
+          setTimeout(() => {
+            // The `send` here is closed-in
+            send({ type: 'anything' });
+          }, 10);
+        }, []); // Intentionally omit `send` from dependency array
 
-      return (
-        <>
-          <button
-            data-testid="button"
-            onClick={() => setActor(lastActor)}
-          ></button>
-        </>
-      );
-    };
+        return (
+          <>
+            <button data-testid="button" onClick={() => setActor(lastActor)}></button>
+          </>
+        );
+      };
 
-    render(<Test />);
+      render(<Test />);
 
-    // At this point, `send` refers to the first (noop) actor
+      // At this point, `send` refers to the first (noop) actor
 
-    const button = screen.getByTestId('button');
-    fireEvent.click(button);
+      const button = screen.getByTestId('button');
+      fireEvent.click(button);
 
-    // At this point, `send` refers to the last actor
+      // At this point, `send` refers to the last actor
 
-    vitest.advanceTimersByTime(20);
+      vitest.advanceTimersByTime(20);
 
-    // The effect will call the closed-in `send`, which originally
-    // was the reference to the first actor. Now that `send` is stable,
-    // it will always refer to the latest actor.
-  }));
+      // The effect will call the closed-in `send`, which originally
+      // was the reference to the first actor. Now that `send` is stable,
+      // it will always refer to the latest actor.
+    }));
 
   test('should also work with services', () => {
-    const counterMachine = createMachine<Observable<{ count: number }>,
-      { type: 'INC' } | { type: 'SOMETHING' }>(
+    const counterMachine = createMachine<Observable<{ count: number }>, { type: 'INC' } | { type: 'SOMETHING' }>(
       {
         id: 'counter',
         initial: 'active',
@@ -400,18 +394,18 @@ describe('legend useActor test', () => {
         states: {
           active: {
             on: {
-              INC: { actions: assign((store) => store.count.set(c => c + 1)) },
-              SOMETHING: { actions: 'doSomething' }
-            }
-          }
-        }
+              INC: { actions: assign((store) => store.count.set((c) => c + 1)) },
+              SOMETHING: { actions: 'doSomething' },
+            },
+          },
+        },
       },
       {
         actions: {
           doSomething: () => {
             /* do nothing */
-          }
-        }
+          },
+        },
       }
     );
     const counterService = interpret(counterMachine).start();
@@ -458,29 +452,30 @@ describe('legend useActor test', () => {
   });
 
   test('should work with initially deferred actors spawned in lazy context', () => {
-    const childMachine = createMachine<undefined, {type: 'NEXT'}>({
+    const childMachine = createMachine<undefined, { type: 'NEXT' }>({
       initial: 'one',
       states: {
         one: {
-          on: { NEXT: 'two' }
+          on: { NEXT: 'two' },
         },
-        two: {}
-      }
+        two: {},
+      },
     });
 
     const machine = createMachine<Observable<{ ref: ActorRef<any> }>>({
-      context: () => createContext(({
-        ref: opaqueObject(spawn(childMachine) as any)
-      })),
+      context: () =>
+        createContext({
+          ref: opaqueObject(spawn(childMachine) as any),
+        }),
       initial: 'waiting',
       states: {
         waiting: {
-          on: { TEST: 'success' }
+          on: { TEST: 'success' },
         },
         success: {
-          type: 'final'
-        }
-      }
+          type: 'final',
+        },
+      },
     });
 
     const App = observer(() => {
@@ -490,10 +485,7 @@ describe('legend useActor test', () => {
       return (
         <>
           <div data-testid="child-state">{childState.value}</div>
-          <button
-            data-testid="child-send"
-            onClick={() => childSend('NEXT')}
-          ></button>
+          <button data-testid="child-send" onClick={() => childSend('NEXT')}></button>
         </>
       );
     });

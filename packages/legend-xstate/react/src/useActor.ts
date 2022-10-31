@@ -52,7 +52,7 @@ export function useActor(
   const actorRefRef = useRef(actorRef);
   const deferredEventsRef = useRef<(EventObject | string)[]>([]);
   const boundGetSnapshot = useCallback(() => getSnapshot(actorRef), [actorRef, getSnapshot]);
-  const send: Sender<EventObject> = useCallback( (...args) => {
+  const send: Sender<EventObject> = useCallback((...args) => {
     const event = args[0];
     if (process.env.NODE_ENV !== 'production' && args.length > 1) {
       console.warn(

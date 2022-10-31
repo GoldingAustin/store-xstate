@@ -1,7 +1,7 @@
-import type { Observable } from '@legendapp/state';
 import { observable } from '@legendapp/state';
-import type { Assigner, EventObject, AssignAction } from 'xstate';
+import type { Assigner, EventObject, AssignAction, LowInfer } from 'xstate';
 import { assign as xstateAssign } from 'xstate';
+import type { ContextReturn, ObservableValue } from './types';
 
 /**
  * Assign that returns context for you
@@ -16,20 +16,24 @@ export const assign = <TContext, TEvent extends EventObject = EventObject>(
   });
 };
 
-// Prevent literal types from causing problems, map undefined to any so undefined unions don't break
-type Input<T> = T extends undefined ? any : T extends boolean ? boolean : T extends object ? InputObject<T> : T;
-type InputObject<T> = {
-  [P in keyof T]: Input<T[P]>;
-};
-
 /**
  *
  * @param context The context that will be converted into a store
+ * @param computed A callback that returns an object with computed properties
  */
-export function createContext<TContext>(context: TContext): Observable<Input<TContext>> {
+export function createContext<TContext>(context: TContext): ContextReturn<TContext, undefined>;
+export function createContext<TContext, Computed extends Record<PropertyKey, unknown>>(
+  context: TContext,
+  computed: (context: LowInfer<ObservableValue<TContext>>) => Computed
+): ContextReturn<TContext, Computed>;
+export function createContext<TContext, Computed extends Record<PropertyKey, unknown> | undefined>(
+  ...args: [TContext] | [TContext, (context: LowInfer<ObservableValue<TContext>>) => Computed]
+): ContextReturn<TContext, Computed> {
+  const [context, computed] = args;
   const store: any = observable(context);
   return {
     ...store,
+    ...(computed ? { computed: computed(store) } : {}),
     get: store.get,
     set: store.set,
     peek: store.peek,
