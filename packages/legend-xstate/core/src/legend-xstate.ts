@@ -45,24 +45,25 @@ export function createContext<TContext, Computed extends Record<PropertyKey, unk
   ToObservableComputed<Computed extends (context: LowInfer<ObservableValue<TContext>>) => infer C ? C : Computed>
 > {
   const [context, computed] = args;
-  const store: any = observable(context);
-  return {
-    ...store,
-    ...(computed ? { computed: computed(store) } : {}),
-    get: store.get,
-    set: store.set,
-    peek: store.peek,
-    onChange: store.onChange,
-    assign: store.assign,
-    delete: store.delete,
-    proxy: store.proxy,
-    children: store.children,
-    root: store.root,
-    ownKeys: store.ownKeys,
-    deleteProperty: store.deleteProperty,
-    has: store.has,
-    id: store.id,
-    getOwnPropertyDescriptor: store.getOwnPropertyDescriptor,
-    getPrototypeOf: store.getPrototypeOf,
+  const obs: any = observable(context);
+  const store = {
+    ...obs,
+    get: obs.get,
+    set: obs.set,
+    peek: obs.peek,
+    onChange: obs.onChange,
+    assign: obs.assign,
+    delete: obs.delete,
+    proxy: obs.proxy,
+    children: obs.children,
+    root: obs.root,
+    ownKeys: obs.ownKeys,
+    deleteProperty: obs.deleteProperty,
+    has: obs.has,
+    id: obs.id,
+    getOwnPropertyDescriptor: obs.getOwnPropertyDescriptor,
+    getPrototypeOf: obs.getPrototypeOf,
   };
+  if (computed) store.computed = computed(store);
+  return store;
 }
