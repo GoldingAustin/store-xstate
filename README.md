@@ -1,9 +1,7 @@
-<!-- badges-start -->
 
 [![Tree shaking support][badge-tree-shaking]][link-bundlephobia]
 [![Compressed package size][badge-size]][link-bundlephobia]
 
-<!-- badges-end -->
 
 # Store + XState
 

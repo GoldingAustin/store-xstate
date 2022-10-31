@@ -1,4 +1,6 @@
-![Size](https://badgen.net/badge/bundlephobia/minzip/legend-xstate)
+
+[![Tree shaking support][badge-tree-shaking]][link-bundlephobia]
+[![Compressed package size][badge-size]][link-bundlephobia]
 
 # legend-xstate (Legend-State + XState)
 
@@ -171,3 +173,9 @@ const Counter = observer(() => {
 
 - Try to make typing the machine easier with observable & computed values
 - Add more tests
+
+[badge-size]: https://badgen.net/bundlephobia/minzip/legend-xstate
+[badge-tree-shaking]:
+https://badgen.net/bundlephobia/tree-shaking/legend-xstate
+[link-bundlephobia]:
+https://bundlephobia.com/package/legend-xstate

@@ -7,7 +7,7 @@
   "description": "Power your XState context with Legend-State",
   "license": "MIT",
   "sideEffects": false,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "keywords": [
     "xstate",
     "state machine",
