@@ -63,9 +63,7 @@ describe('Vanilla XState', () => {
   });
 
   test('update a nested primitive value with function', () => {
-    const sleepMachine = createMachine<
-      Context<{ sleep: { count: { sheep: number } } }, { doubled: number }>
-    >(
+    const sleepMachine = createMachine<Context<{ sleep: { count: { sheep: number } } }, { doubled: number }>>(
       {
         initial: 'start',
         context: createContext(

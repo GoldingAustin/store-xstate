@@ -1,7 +1,7 @@
 import { observable } from '@legendapp/state';
 import type { Assigner, EventObject, AssignAction, LowInfer } from 'xstate';
 import { assign as xstateAssign } from 'xstate';
-import type { ContextReturn, ObservableValue } from './types';
+import type { ContextReturn, ObservableValue, ToObservableComputed } from './types';
 
 /**
  * Assign that returns context for you
@@ -22,13 +22,28 @@ export const assign = <TContext, TEvent extends EventObject = EventObject>(
  * @param computed A callback that returns an object with computed properties
  */
 export function createContext<TContext>(context: TContext): ContextReturn<TContext, undefined>;
+export function createContext<
+  TContext,
+  Computed extends (context: LowInfer<ObservableValue<TContext>>) => any = (
+    context: LowInfer<ObservableValue<TContext>>
+  ) => any
+>(
+  context: TContext,
+  computed: Computed
+): ContextReturn<TContext, Computed extends (context: LowInfer<ObservableValue<TContext>>) => infer C ? C : never>;
 export function createContext<TContext, Computed extends Record<PropertyKey, unknown>>(
   context: TContext,
-  computed: (context: LowInfer<ObservableValue<TContext>>) => Computed
-): ContextReturn<TContext, Computed>;
+  computed: (context: LowInfer<ObservableValue<TContext>>) => ToObservableComputed<Computed>
+): ContextReturn<TContext, ToObservableComputed<Computed>>;
 export function createContext<TContext, Computed extends Record<PropertyKey, unknown> | undefined>(
-  ...args: [TContext] | [TContext, (context: LowInfer<ObservableValue<TContext>>) => Computed]
-): ContextReturn<TContext, Computed> {
+  ...args:
+    | [TContext]
+    | [TContext, (context: LowInfer<ObservableValue<TContext>>) => Computed]
+    | [TContext, ((context: LowInfer<ObservableValue<TContext>>) => Computed)?]
+): ContextReturn<
+  TContext,
+  ToObservableComputed<Computed extends (context: LowInfer<ObservableValue<TContext>>) => infer C ? C : Computed>
+> {
   const [context, computed] = args;
   const store: any = observable(context);
   return {
