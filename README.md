@@ -1,4 +1,9 @@
-![Size](https://badgen.net/badge/bundlephobia/minzip/legend-xstate)
+<!-- badges-start -->
+
+[![Tree shaking support][badge-tree-shaking]][link-bundlephobia]
+[![Compressed package size][badge-size]][link-bundlephobia]
+
+<!-- badges-end -->
 
 # Store + XState
 
@@ -191,3 +196,9 @@ const Counter = observer(() => {
 - Run: `yarn run build:legend`
 
 - To test run: `yarn run test`
+
+[badge-size]: https://badgen.net/bundlephobia/minzip/legend-xstate
+[badge-tree-shaking]:
+  https://badgen.net/bundlephobia/tree-shaking/legend-xstate
+[link-bundlephobia]:
+  https://bundlephobia.com/package/legend-xstate
