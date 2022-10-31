@@ -1,3 +1,5 @@
+![Size](https://badgen.net/badge/bundlephobia/minzip/legend-xstate)
+
 # legend-xstate (Legend-State + XState)
 
 ```typescript
