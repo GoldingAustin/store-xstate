@@ -24,22 +24,19 @@ export const assign = <TContext, TEvent extends EventObject = EventObject>(
 export function createContext<TContext>(context: TContext): ContextReturn<TContext, undefined>;
 export function createContext<
   TContext,
-  Computed extends (context: LowInfer<ObservableValue<TContext>>) => any = (
-    context: LowInfer<ObservableValue<TContext>>
-  ) => any
+  Computed extends Record<PropertyKey, unknown> | undefined,
+  ComputedFunc extends (context: LowInfer<ObservableValue<TContext>>  & {computed: LowInfer<Computed>}) => Computed = (
+    context: LowInfer<ObservableValue<TContext>> & {computed: LowInfer<Computed>}
+  ) => Computed
 >(
   context: TContext,
-  computed: Computed
-): ContextReturn<TContext, Computed extends (context: LowInfer<ObservableValue<TContext>>) => infer C ? C : never>;
-export function createContext<TContext, Computed extends Record<PropertyKey, unknown>>(
-  context: TContext,
-  computed: (context: LowInfer<ObservableValue<TContext>>) => ToObservableComputed<Computed>
-): ContextReturn<TContext, ToObservableComputed<Computed>>;
+  computed: ComputedFunc
+): ContextReturn<TContext, Computed>;
 export function createContext<TContext, Computed extends Record<PropertyKey, unknown> | undefined>(
   ...args:
     | [TContext]
-    | [TContext, (context: LowInfer<ObservableValue<TContext>>) => Computed]
-    | [TContext, ((context: LowInfer<ObservableValue<TContext>>) => Computed)?]
+    | [TContext, (context: LowInfer<ObservableValue<TContext>> & { computed: LowInfer<Computed> }) => Computed]
+    | [TContext, ((context: LowInfer<ObservableValue<TContext>> & { computed: LowInfer<Computed> }) => Computed)?]
 ): ContextReturn<
   TContext,
   ToObservableComputed<Computed extends (context: LowInfer<ObservableValue<TContext>>) => infer C ? C : Computed>

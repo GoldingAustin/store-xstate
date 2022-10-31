@@ -15,6 +15,7 @@ describe('Vanilla XState', () => {
           },
           (c) => ({
             doubled: computed(() => c.count.get() * 2),
+            quad: computed(() => c.computed.doubled.get() * 2),
           })
         ),
         states: {

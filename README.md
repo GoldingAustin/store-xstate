@@ -17,7 +17,7 @@ Huge thanks to the XState & Legend-State teams <3
 
 Provides a core library (`legend-xstate`) usable with vanilla `xstate` and a React sub-library (`legend-xstate/react`) with XState React hooks optimized for Legend-State
 
-[CodeSandbox Demo](https://codesandbox.io/s/muddy-sound-czqmzv?file=/src/ComputedExample.jsx)
+[CodeSandbox Demo](https://codesandbox.io/s/legend-xstate-example-czqmzv?file=/src/ComputedExample.jsx)\
 [![NPM](https://nodei.co/npm/legend-xstate.png)](https://www.npmjs.com/package/legend-xstate)
 
 Please see the [XState](https://xstate.js.org/docs/guides/start.html#our-first-machine) and [Legend-State](https://legendapp.com/open-source/state/) docs if you're not already familiar with either library.
@@ -36,6 +36,7 @@ const countMachine = createMachine({
     // Create computed values in context
     (context) => ({
       doubled: computed(() => context.count.get() * 2),
+      doubledDoubled: computed(() => context.computed.doubled.get() * 2),
     })
   ),
   states: {
@@ -55,7 +56,8 @@ const service = interpret(countMachine).start();
 service.send({ type: 'INC' });
 
 service.state.context.count; // 1
-service.state.context.computed.double; // 2
+service.state.context.computed.doubled; // 2
+service.state.context.computed.doubledDoubled; // 4
 ```
 
 Installation:
@@ -90,10 +92,11 @@ Required peer dependencies for `legend-xstate/react`:
       // computed callback
       (context) => ({
         doubled: computed(() => context.count.get() * 2),
+        doubledDoubled: computed(() => context.computed.doubled.get() * 2),
       })
     );
     context.count; // 1
-    context.computed.doube; // 2
+    context.computed.doubled; // 2
     ```
 - `assign`: Overrides XState's `assign` function to allow updates in the observable without the need to return a value.
 
