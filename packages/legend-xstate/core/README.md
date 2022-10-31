@@ -4,6 +4,13 @@
 
 # legend-xstate (Legend-State + XState)
 
+Provides a core library (`legend-xstate` 426B min+gzip) usable with vanilla `xstate` and a React sub-library (`legend-xstate/react`) with XState React hooks optimized for Legend-State
+
+[CodeSandbox Demo](https://codesandbox.io/s/muddy-sound-czqmzv?file=/src/ComputedExample.jsx)
+[![NPM](https://nodei.co/npm/legend-xstate.png)](https://www.npmjs.com/package/legend-xstate)
+
+Please see the [XState](https://xstate.js.org/docs/guides/start.html#our-first-machine) and [Legend-State](https://legendapp.com/open-source/state/) docs if you're not already familiar with either library.
+
 ```typescript
 import { interpret } from 'xstate';
 import { createContext } from 'legend-xstate';
@@ -11,9 +18,11 @@ import { createContext } from 'legend-xstate';
 const countMachine = createMachine({
   initial: 'start',
   context: createContext(
+    // Observable context
     {
       count: 0,
     },
+    // Create computed values in context
     (context) => ({
       doubled: computed(() => context.count.get() * 2),
     })
@@ -22,6 +31,7 @@ const countMachine = createMachine({
     start: {
       on: {
         INC: {
+          // Update context Legend-State's observable style
           action: assign((context) => context.count.set((c) => c + 1)),
         },
       },
@@ -36,10 +46,6 @@ service.send({ type: 'INC' });
 service.state.context.count; // 1
 service.state.context.computed.double; // 2
 ```
-
-Provides a core library (`legend-xstate`) usable with vanilla `xstate` and a React sub-library (`legend-xstate/react`) with XState React hooks optimized for Legend-State
-
-[![NPM](https://nodei.co/npm/legend-xstate.png)](https://www.npmjs.com/package/legend-xstate)
 
 Installation:
 
@@ -98,7 +104,7 @@ Required peer dependencies for `legend-xstate/react`:
 ### Notes
 
 - Actors need to be wrapped in `opaqueObject` from `@legendapp/state` if they are stored in context
-- If a computed is returning an `Observable` rather than the base value, the type passed into `Context` must be wrapped in `ObservableValue`
+- If a computed is returning an `Observable` rather than the base value, the type passed into `Context` must be wrapped in `ObservableValue`. (I'm looking into ways to make this less annoying)
 - `context` is a pseudo observable, meaning it's not a Proxy, but it has the same methods as an observable. This shouldn't cause any issues (except you'll need to use `state.context.get()` in React when rendering the root context object), but it's worth noting.
 
 ### Example
@@ -137,9 +143,10 @@ service.state.context;
 
 ## legend-xstate/react (Legend-State + XState)
 
-`legend-xstate/react` Exports optimized versions of `useMachine` and `useActor` that only rerender when absolutely necessary. Component don't rerender on any context changes, they only rerender the `state.value` changes so `state.can`, `state.matches`, `state.hasTags`, etc. are run accordingly.
+`legend-xstate/react` Exports optimized versions of `useMachine` and `useActor` that only rerender when absolutely necessary. Components using machines/actors have the same fine-grained reactivity from as you'd expect with `Legend-State`, a Component only rerenders when the `state.value` changes; `state.can`, `state.matches`, `state.hasTags`, etc. are run accordingly.
+You can still use `useMachine` and `useActor` from `@xstate/react` but will lose out on more optimized component rerenders without manual memoization.
 
-It's important to wrap your components in `legendapp/state`'s `observer` wrapper.
+It's important to wrap your components in `@legendapp/state`'s `observer` wrapper.
 
 The tests for `useMachine` and `useActor` are all ported from `@xstate/react` (thanks `@xstate/react` team :))
 
@@ -171,8 +178,9 @@ const Counter = observer(() => {
 
 #### TODO
 
-- Try to make typing the machine easier with observable & computed values
+- Make typing the machine easier with observable & computed values.
 - Add more tests
+- Better docs
 
 [badge-size]: https://badgen.net/bundlephobia/minzip/legend-xstate
 [badge-tree-shaking]:
