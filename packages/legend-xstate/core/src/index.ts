@@ -1,2 +1,3 @@
-export { createContext, assign } from './legend-xstate';
-export type { Context, ObservableValue } from './types';
+export { assign, observableContext } from './legend-xstate';
+export { createObservableMachine } from './createObservableMachine';
+export type { ObservableContext, ToObservableContext, ObservableValue } from './types';

@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { ActorRef, EventObject, Sender } from 'xstate';
+import type { ActorRef, EventObject, Sender } from 'xstate';
 import { useService } from './useService';
 import { useCallback, useLayoutEffect, useRef } from 'react';
 

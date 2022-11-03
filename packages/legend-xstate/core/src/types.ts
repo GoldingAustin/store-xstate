@@ -1,63 +1,70 @@
+import type { Observable, ObservableComputed } from '@legendapp/state';
 import type {
-  Observable,
-  ObservableArray,
-  ObservableBaseFns,
-  ObservableComputed,
-  ObservableFns,
-  ObservableObject,
-  ObservableObjectFns,
-  ObservableObjectOrArray,
-} from '@legendapp/state';
-import type { LowInfer } from 'xstate';
+  BaseActionObject,
+  EventObject,
+  ServiceMap,
+  TypegenDisabled,
+  LowInfer,
+  MachineSchema,
+  NoInfer,
+  StateNodeConfig,
+  StateSchema,
+} from 'xstate';
 
 // Prevent literal types from causing problems, map undefined to any so undefined unions don't break
-type Input<T> = T extends Observable
-  ? T
-  : T extends ObservableObjectOrArray<any>
-  ? T
-  : T extends ObservableObjectFns<any>
-  ? T
-  : T extends ObservableBaseFns<any>
-  ? T
-  : T extends ObservableFns<any>
-  ? T
-  : T extends ObservableArray<any>
-  ? T
-  : T extends ObservableObject
-  ? T
-  : T extends undefined
-  ? any
-  : T extends never
-  ? any
-  : T extends boolean
-  ? boolean
-  : T extends object
-  ? {
-      [P in keyof T]: Input<T[P]>;
-    }
-  : T;
 
 export type ToObservableComputed<TComputed> = {
-  [P in keyof TComputed]: ObservableComputed<TComputed[P]>;
+  [P in keyof TComputed]: TComputed[P] extends ObservableComputed ? TComputed[P] : ObservableComputed<TComputed[P]>;
 };
-export type ObservableValue<Value> = Observable<Input<Value>>;
-type BaseContext<
+export type ObservableValue<Value> = Observable<Value>;
+
+export type ToObservableContext<
   TContext,
-  TComputed extends Record<PropertyKey, unknown> | undefined = never,
-  Return extends true | false = false
+  TComputed extends unknown | undefined = undefined
 > = TComputed extends undefined
-  ? ObservableValue<TContext>
-  : ObservableValue<TContext> & {
-      computed: {
-        [P in keyof TComputed]: Return extends true ? TComputed[P] : ObservableComputed<TComputed[P]>;
-      };
+  ? Observable<TContext>
+  : Observable<TContext> & {
+      computed: ToObservableComputed<TComputed>;
     };
 
-export type ContextReturn<TContext, TComputed extends Record<PropertyKey, unknown> | undefined> = LowInfer<
-  BaseContext<TContext, TComputed, true>
->;
+export type ObservableContext<TContext, TComputed extends unknown | undefined = undefined> = TComputed extends undefined
+  ? TContext
+  : TContext & {
+      computed: TComputed;
+    };
 
-export type Context<TContext, TComputed extends Record<PropertyKey, unknown> | undefined = undefined> = BaseContext<
+export type ObservableContextComputed<TContext, TComputed> = TContext extends undefined
+  ? undefined
+  : ObservableContext<Observable<TContext>, ToObservableComputed<TComputed>>;
+
+export interface ObservableMachineConfig<
   TContext,
-  TComputed
->;
+  TStateSchema extends StateSchema,
+  TEvent extends EventObject,
+  TAction extends BaseActionObject = BaseActionObject,
+  TServiceMap extends ServiceMap = ServiceMap,
+  TTypesMeta = TypegenDisabled,
+  TComputed extends Record<string, ObservableComputed> = Record<string, ObservableComputed>,
+  TTContext = 'computed' extends keyof TContext ? Omit<TContext, 'computed'> : TContext
+> extends StateNodeConfig<
+    ObservableContextComputed<NoInfer<TTContext>, unknown>,
+    TStateSchema,
+    NoInfer<TEvent>,
+    TAction
+  > {
+  computed?: (
+    context: LowInfer<Observable<TTContext>> & {
+      computed: 'computed' extends keyof TContext ? ToObservableComputed<TContext['computed']> : unknown;
+    }
+  ) => TComputed;
+  /**
+   * The initial context (extended state)
+   */
+  context?: LowInfer<TTContext | (() => TTContext)>;
+  /**
+   * The machine's own version.
+   */
+  version?: string;
+  schema?: MachineSchema<TContext, TEvent, TServiceMap>;
+  tsTypes?: TTypesMeta;
+}

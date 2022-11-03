@@ -24,25 +24,25 @@
  * SOFTWARE.
  */
 import { useActor, useMachine } from '../src';
-import { ActorRef, ActorRefFrom, createMachine, interpret, sendParent, spawn, toActorRef } from 'xstate';
+import { ActorRef, ActorRefFrom, interpret, sendParent, spawn, toActorRef } from 'xstate';
 import React, { FC, useEffect, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { createContext, assign, Context } from 'legend-xstate';
+import { createObservableMachine, assign } from 'legend-xstate';
 import { vitest } from 'vitest';
 import { observer } from '@legendapp/state/react-components';
-import { Observable, opaqueObject } from '@legendapp/state';
+import { opaqueObject } from '@legendapp/state';
 
 describe('legend useActor test', () => {
   test('initial invoked actor should be immediately available', () =>
     new Promise<void>((done) => {
-      const childMachine = createMachine({
+      const childMachine = createObservableMachine({
         id: 'childMachine',
         initial: 'active',
         states: {
           active: {},
         },
       });
-      const machine = createMachine({
+      const machine = createObservableMachine({
         initial: 'active',
         invoke: {
           id: 'child',
@@ -74,7 +74,7 @@ describe('legend useActor test', () => {
 
   test('invoked actor should be able to receive (deferred) events that it replays when active', () =>
     new Promise<void>((done) => {
-      const childMachine = createMachine({
+      const childMachine = createObservableMachine({
         id: 'childMachine',
         initial: 'active',
         states: {
@@ -85,7 +85,7 @@ describe('legend useActor test', () => {
           },
         },
       });
-      const machine = createMachine({
+      const machine = createObservableMachine({
         initial: 'active',
         invoke: {
           id: 'child',
@@ -126,7 +126,7 @@ describe('legend useActor test', () => {
 
   test('initial spawned actor should be immediately available', () =>
     new Promise<void>((done) => {
-      const childMachine = createMachine({
+      const childMachine = createObservableMachine({
         id: 'childMachine',
         initial: 'active',
         states: {
@@ -138,11 +138,11 @@ describe('legend useActor test', () => {
         actorRef: undefined | ActorRefFrom<typeof childMachine>;
       }
 
-      const machine = createMachine<Context<Ctx>>({
+      const machine = createObservableMachine<Ctx>({
         initial: 'active',
-        context: createContext({
+        context: {
           actorRef: undefined,
-        }),
+        },
         states: {
           active: {
             entry: assign((store) => {
@@ -174,7 +174,7 @@ describe('legend useActor test', () => {
 
   test('spawned actor should be able to receive (deferred) events that it replays when active', () =>
     new Promise<void>((done) => {
-      const childMachine = createMachine({
+      const childMachine = createObservableMachine({
         id: 'childMachine',
         initial: 'active',
         states: {
@@ -185,15 +185,13 @@ describe('legend useActor test', () => {
           },
         },
       });
-      const machine = createMachine<
-        Observable<{
-          actorRef: undefined | ActorRefFrom<typeof childMachine>;
-        }>
-      >({
+      const machine = createObservableMachine<{
+        actorRef: undefined | ActorRefFrom<typeof childMachine>;
+      }>({
         initial: 'active',
-        context: createContext({
+        context: {
           actorRef: undefined,
-        }),
+        },
         states: {
           active: {
             entry: assign((store) => {
@@ -386,11 +384,11 @@ describe('legend useActor test', () => {
     }));
 
   test('should also work with services', () => {
-    const counterMachine = createMachine<Observable<{ count: number }>, { type: 'INC' } | { type: 'SOMETHING' }>(
+    const counterMachine = createObservableMachine<{ count: number }, { type: 'INC' } | { type: 'SOMETHING' }>(
       {
         id: 'counter',
         initial: 'active',
-        context: createContext({ count: 0 }),
+        context: { count: 0 },
         states: {
           active: {
             on: {
@@ -452,7 +450,7 @@ describe('legend useActor test', () => {
   });
 
   test('should work with initially deferred actors spawned in lazy context', () => {
-    const childMachine = createMachine<undefined, { type: 'NEXT' }>({
+    const childMachine = createObservableMachine<undefined, { type: 'NEXT' }>({
       initial: 'one',
       states: {
         one: {
@@ -462,11 +460,10 @@ describe('legend useActor test', () => {
       },
     });
 
-    const machine = createMachine<Observable<{ ref: ActorRef<any> }>>({
-      context: () =>
-        createContext({
-          ref: opaqueObject(spawn(childMachine) as any),
-        }),
+    const machine = createObservableMachine<{ ref: ActorRef<any> }>({
+      context: () => ({
+        ref: opaqueObject(spawn(childMachine) as any),
+      }),
       initial: 'waiting',
       states: {
         waiting: {

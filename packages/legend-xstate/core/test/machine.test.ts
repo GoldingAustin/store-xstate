@@ -1,23 +1,74 @@
 /// <reference types="vitest/globals" />
 import { computed, opaqueObject } from '@legendapp/state';
-import { ActorRef, interpret, send, sendParent, spawn, createMachine } from 'xstate';
-import { assign, createContext } from '../src';
-import type { Context } from '../src';
+import { ActorRef, createMachine, interpret, send, sendParent, spawn } from 'xstate';
+import { assign, observableContext, ToObservableContext } from '../src';
+import type { ObservableContext } from '../src';
+import { createObservableMachine } from '../src/createObservableMachine';
 
 describe('Vanilla XState', () => {
-  test('update a primitive value', () => {
-    const countMachine = createMachine<Context<{ count: number }, { doubled: number }>>(
+  test('update a primitive value no typings', () => {
+    const countMachine = createObservableMachine(
       {
         initial: 'start',
-        context: createContext(
-          {
-            count: 0,
+        context: { count: 0 },
+        computed: (context) => ({
+          doubled: computed(() => context.count.get() * 2),
+        }),
+        states: {
+          start: {
+            entry: 'increment',
           },
-          (c) => ({
-            doubled: computed(() => c.count.get() * 2),
-            quad: computed(() => c.computed.doubled.get() * 2),
-          })
-        ),
+        },
+      },
+      {
+        actions: {
+          increment: assign((store) => {
+            store.count.set(3);
+          }),
+        },
+      }
+    );
+    const state = countMachine.transition(countMachine.initialState, 'start');
+    expect(state.context.count.get()).toBe(3);
+    expect(state.context.computed.doubled.get()).toBe(6);
+  });
+
+  test('update a primitive value', () => {
+    const countMachine = createObservableMachine<
+      ObservableContext<{ count: number }, { doubled: number; quad: number }>
+    >(
+      {
+        initial: 'start',
+        context: { count: 0 },
+        computed: (context) => ({
+          doubled: computed(() => context.count.get() * 2),
+          quad: computed(() => context.computed.doubled.get() * 2),
+        }),
+        states: {
+          start: {
+            entry: 'increment',
+          },
+        },
+      },
+      {
+        actions: {
+          increment: assign((store) => store.count.set(3)),
+        },
+      }
+    );
+    const state = countMachine.transition(countMachine.initialState, 'start');
+    expect(state.context.count.get()).toBe(3);
+    expect(state.context.computed.doubled.get()).toBe(6);
+    expect(state.context.computed.quad.get()).toBe(12);
+  });
+
+  test('update a primitive value with createObservableContext', () => {
+    const countMachine = createMachine<ToObservableContext<{ count: number }, { doubled: number }>>(
+      {
+        initial: 'start',
+        context: observableContext({ count: 0 }, (context) => ({
+          doubled: computed(() => context.count.get() * 2),
+        })),
         states: {
           start: {
             entry: 'increment',
@@ -36,16 +87,16 @@ describe('Vanilla XState', () => {
   });
 
   test('update a nested primitive value', () => {
-    const sleepMachine = createMachine<Context<{ sleep: { count: { sheep: number } } }>>(
+    const sleepMachine = createObservableMachine<{ sleep: { count: { sheep: number } } }>(
       {
         initial: 'start',
-        context: createContext({
+        context: {
           sleep: {
             count: {
               sheep: 0,
             },
           },
-        }),
+        },
         states: {
           start: {
             entry: 'increment',
@@ -64,21 +115,21 @@ describe('Vanilla XState', () => {
   });
 
   test('update a nested primitive value with function', () => {
-    const sleepMachine = createMachine<Context<{ sleep: { count: { sheep: number } } }, { doubled: number }>>(
+    const sleepMachine = createObservableMachine<
+      ObservableContext<{ sleep: { count: { sheep: number } } }, { doubled: number }>
+    >(
       {
         initial: 'start',
-        context: createContext(
-          {
-            sleep: {
-              count: {
-                sheep: 3,
-              },
+        context: {
+          sleep: {
+            count: {
+              sheep: 3,
             },
           },
-          (c) => ({
-            doubled: computed(() => c.sleep.count.sheep.get() * 2),
-          })
-        ),
+        },
+        computed: (c) => ({
+          doubled: computed(() => c.sleep.count.sheep.get() * 2),
+        }),
         states: {
           start: {
             entry: 'increment',
@@ -97,14 +148,14 @@ describe('Vanilla XState', () => {
   });
 
   test('update a nested boolean with a function', () => {
-    const sleepMachine = createMachine<Context<{ sleep: { isSleeping: boolean } }>>(
+    const sleepMachine = createObservableMachine<{ sleep: { isSleeping: boolean } }>(
       {
         initial: 'start',
-        context: createContext({
+        context: {
           sleep: {
             isSleeping: false,
           },
-        }),
+        },
         states: {
           start: {
             entry: 'fall asleep',
@@ -122,16 +173,16 @@ describe('Vanilla XState', () => {
   });
 
   test('update an array', () => {
-    const todoMachine = createMachine<Context<{ todos: { task: string; completed: boolean }[] }>>(
+    const todoMachine = createObservableMachine<{ todos: { task: string; completed: boolean }[] }>(
       {
         initial: 'start',
-        context: createContext({
+        context: {
           todos: [
             { task: 'Finish work', completed: false },
             { task: 'Go grocery shopping', completed: false },
             { task: 'Make dinner', completed: false },
           ],
-        }),
+        },
         states: {
           start: {
             entry: 'sleep',
@@ -150,26 +201,24 @@ describe('Vanilla XState', () => {
   });
 
   test('update multiple items in an array', () => {
-    const todoMachine = createMachine<
-      Context<
+    const todoMachine = createObservableMachine<
+      ObservableContext<
         { todos: { task: string; completed: boolean }[] },
         { notComplete: { task: string; completed: boolean }[] }
       >
     >(
       {
         initial: 'start',
-        context: createContext(
-          {
-            todos: [
-              { task: 'Finish work', completed: false },
-              { task: 'Go grocery shopping', completed: false },
-              { task: 'Make dinner', completed: false },
-            ],
-          },
-          (c) => ({
-            notComplete: computed(() => c.todos.get().filter((t) => !!t.completed)),
-          })
-        ),
+        context: () => ({
+          todos: [
+            { task: 'Finish work', completed: false },
+            { task: 'Go grocery shopping', completed: false },
+            { task: 'Make dinner', completed: false },
+          ],
+        }),
+        computed: (c) => ({
+          notComplete: computed(() => c.todos.get().filter((t) => !!t.completed)),
+        }),
         states: {
           start: {
             entry: 'mark done',
@@ -193,16 +242,16 @@ describe('Vanilla XState', () => {
   });
 
   test('update range of items in an array', () => {
-    const todoMachine = createMachine<Context<{ todos: { task: string; completed: boolean }[] }>>(
+    const todoMachine = createObservableMachine<{ todos: { task: string; completed: boolean }[] }>(
       {
         initial: 'start',
-        context: createContext({
+        context: {
           todos: [
             { task: 'Finish work', completed: false },
             { task: 'Go grocery shopping', completed: false },
             { task: 'Make dinner', completed: false },
           ],
-        }),
+        },
         states: {
           start: {
             entry: 'mark done',
@@ -224,19 +273,19 @@ describe('Vanilla XState', () => {
   });
 
   test('Add an item with event data', () => {
-    const todoMachine = createMachine<
-      Context<{ todos: { task: string; completed: boolean }[] }>,
+    const todoMachine = createObservableMachine<
+      { todos: { task: string; completed: boolean }[] },
       { type: 'add'; name: string }
     >(
       {
         initial: 'start',
-        context: createContext({
+        context: {
           todos: [
             { task: 'Finish work', completed: false },
             { task: 'Go grocery shopping', completed: false },
             { task: 'Make dinner', completed: false },
           ],
-        }),
+        },
         states: {
           start: {
             on: {
@@ -261,20 +310,28 @@ describe('Vanilla XState', () => {
   });
 
   test('Reset action', () => {
-    const nameMachine = createMachine(
+    const nameMachine = createObservableMachine(
       {
         initial: 'start',
         schema: {} as {
-          context: Context<{ first: string; last: string; father: undefined | { first: string; last: string } }>;
+          context: {
+            first: string;
+            last: string;
+            father: undefined | { first: string; last: string };
+            computed: { fullName: string };
+          };
           events:
             | { type: 'set name'; first: string; last: string }
             | { type: 'set father'; first: string; last: string }
             | { type: 'reset name' };
         },
-        context: createContext({
+        context: {
           first: '',
           last: '',
           father: undefined,
+        },
+        computed: (context) => ({
+          fullName: computed(() => context.first.get() + ' ' + context.last.get()),
         }),
         states: {
           start: {
@@ -296,8 +353,7 @@ describe('Vanilla XState', () => {
         actions: {
           'set name': assign((store, event) => {
             if (event.type === 'set name') {
-              store.first.set(event.first);
-              store.last.set(event.last);
+              store.assign({first: event.first, last: event.last})
             }
           }),
           'set father': assign((store, event) =>
@@ -314,6 +370,7 @@ describe('Vanilla XState', () => {
     });
 
     expect(state.context.get()).toEqual({ first: 'Luke', last: 'Skywalker', father: undefined });
+    expect(state.context.computed.fullName.get()).toEqual('Luke Skywalker');
     const state2 = nameMachine.transition(state, { type: 'reset name' });
     expect(state2.context.get()).toEqual({ first: '', last: '', father: undefined });
 
@@ -342,18 +399,18 @@ describe('Vanilla XState', () => {
         },
       });
 
-      const parentMachine = createMachine<Context<{ localOne: undefined | ActorRef<typeof remoteMachine> }>>({
+      const parentMachine = createObservableMachine<{ localOne?: ActorRef<typeof remoteMachine> }>({
         id: 'parent',
         initial: 'waiting',
-        context: createContext({
+        context: {
           localOne: undefined,
-        }),
+        },
         states: {
           waiting: {
-            entry: assign((store) => store.localOne.set(opaqueObject(spawn(remoteMachine)))),
+            entry: assign((store) => store.localOne?.set(opaqueObject(spawn(remoteMachine)))),
             on: {
               'LOCAL.WAKE': {
-                actions: send({ type: 'WAKE' }, { to: (context) => context.localOne.get()! }),
+                actions: send({ type: 'WAKE' }, { to: (context) => context.localOne?.get()! }),
               },
               'REMOTE.ONLINE': { target: 'connected' },
             },
@@ -365,7 +422,7 @@ describe('Vanilla XState', () => {
       const parentService = interpret(parentMachine).start();
 
       parentService.send({ type: 'LOCAL.WAKE' });
-      expect(parentService.state.context.localOne.get()).toBeTruthy();
+      expect(parentService.state.context.localOne?.get()).toBeTruthy();
       setTimeout(() => {
         expect(parentService.state.value).toEqual('connected');
         done();

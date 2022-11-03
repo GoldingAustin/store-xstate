@@ -25,22 +25,12 @@
  */
 import { fireEvent, screen, render, act } from '@testing-library/react';
 import * as React from 'react';
-import {
-  AnyState,
-  createMachine,
-  DoneEventObject,
-  doneInvoke,
-  Interpreter,
-  InterpreterFrom,
-  send,
-  spawn,
-  State,
-} from 'xstate';
-import { assign, createContext } from 'legend-xstate';
+import { AnyState, DoneEventObject, doneInvoke, Interpreter, InterpreterFrom, send, spawn, State } from 'xstate';
+import { assign, createObservableMachine } from 'legend-xstate';
 import { useActor, useMachine } from '../src';
 import { FC, useCallback, useState } from 'react';
 import { vitest } from 'vitest';
-import { Observable, opaqueObject } from '@legendapp/state';
+import { opaqueObject } from '@legendapp/state';
 import { observer } from '@legendapp/state/react-components';
 
 describe('legend useMachine test', () => {
@@ -48,12 +38,12 @@ describe('legend useMachine test', () => {
     data: undefined,
   };
   const fetchMachine = () =>
-    createMachine<Observable<typeof context>, { type: 'FETCH' } | DoneEventObject>({
+    createObservableMachine<typeof context, { type: 'FETCH' } | DoneEventObject>({
       id: 'fetch',
       initial: 'idle',
-      context: createContext({
+      context: {
         data: undefined,
-      }),
+      },
       states: {
         idle: {
           on: { FETCH: 'loading' },
@@ -164,7 +154,7 @@ describe('legend useMachine test', () => {
   });
 
   test('should merge machine context with options.context', () => {
-    const testMachine = createMachine<{ foo: string; test: boolean }>({
+    const testMachine = createObservableMachine<{ foo: string; test: boolean }>({
       context: {
         foo: 'bar',
         test: false,
@@ -177,8 +167,7 @@ describe('legend useMachine test', () => {
 
     const Test = () => {
       const [state] = useMachine(testMachine, { context: { test: true } });
-
-      expect(state.context).toEqual({
+      expect(state.context.get()).toEqual({
         foo: 'bar',
         test: true,
       });
@@ -191,10 +180,10 @@ describe('legend useMachine test', () => {
 
   test('should not spawn actors until service is started', () =>
     new Promise<void>(async (done) => {
-      const spawnMachine = createMachine<any>({
+      const spawnMachine = createObservableMachine<{ ref: any }>({
         id: 'spawn',
         initial: 'start',
-        context: createContext({ ref: undefined }),
+        context: { ref: undefined },
         states: {
           start: {
             entry: assign((store) => {
@@ -230,7 +219,7 @@ describe('legend useMachine test', () => {
 
   test('actions should not have stale data', () =>
     new Promise<void>(async (done) => {
-      const toggleMachine = createMachine<any, { type: 'TOGGLE' }>({
+      const toggleMachine = createObservableMachine<any, { type: 'TOGGLE' }>({
         initial: 'inactive',
         states: {
           inactive: {
@@ -283,7 +272,7 @@ describe('legend useMachine test', () => {
       fireEvent.click(button);
     }));
 
-  test('should compile with typed matches (createMachine)', () => {
+  test('should compile with typed matches (createObservableMachine)', () => {
     interface TestContext {
       count?: number;
       user?: { name: string };
@@ -299,7 +288,7 @@ describe('legend useMachine test', () => {
           context: { user: { name: string } };
         };
 
-    const machine = createMachine<TestContext, any, TestState>({
+    const machine = createObservableMachine<TestContext, any, TestState>({
       initial: 'loading',
       states: {
         loading: {
@@ -319,7 +308,7 @@ describe('legend useMachine test', () => {
       const [state] = useActor(service);
 
       if (state.matches('loaded')) {
-        const name = state.context.user.name;
+        const name = state.context.user?.get()?.name;
 
         // never called - it's okay if the name is undefined
         expect(name).toBeTruthy();
@@ -335,7 +324,7 @@ describe('legend useMachine test', () => {
       const [state, , service] = useMachine(machine);
 
       if (state.matches('loaded')) {
-        const name = state.context.user.name;
+        const name = state.context.user?.get()?.name;
 
         // never called - it's okay if the name is undefined
         expect(name).toBeTruthy();
@@ -354,7 +343,7 @@ describe('legend useMachine test', () => {
   test('should successfully spawn actors from the lazily declared context', () => {
     let childSpawned = false;
 
-    const machine = createMachine({
+    const machine = createObservableMachine({
       context: () => ({
         ref: spawn(() => {
           childSpawned = true;
@@ -375,7 +364,7 @@ describe('legend useMachine test', () => {
   test('should be able to use an action provided outside of React', () => {
     let actionCalled = false;
 
-    const machine = createMachine(
+    const machine = createObservableMachine(
       {
         on: {
           EV: {
@@ -406,7 +395,7 @@ describe('legend useMachine test', () => {
   test('should be able to use a guard provided outside of React', () => {
     let guardCalled = false;
 
-    const machine = createMachine(
+    const machine = createObservableMachine(
       {
         initial: 'a',
         states: {
@@ -447,7 +436,7 @@ describe('legend useMachine test', () => {
   test('should be able to use a service provided outside of React', () => {
     let serviceCalled = false;
 
-    const machine = createMachine(
+    const machine = createObservableMachine(
       {
         initial: 'a',
         states: {
@@ -489,7 +478,7 @@ describe('legend useMachine test', () => {
   test('should be able to use a delay provided outside of React', () => {
     vitest.useFakeTimers();
 
-    const machine = createMachine(
+    const machine = createObservableMachine(
       {
         initial: 'a',
         states: {
@@ -540,7 +529,7 @@ describe('legend useMachine test', () => {
   });
 
   test('should not use stale data in a guard', () => {
-    const machine = createMachine({
+    const machine = createObservableMachine({
       initial: 'a',
       states: {
         a: {
@@ -580,7 +569,7 @@ describe('legend useMachine test', () => {
 
   test('should not invoke initial services more than once', () => {
     let activatedCount = 0;
-    const machine = createMachine({
+    const machine = createObservableMachine({
       initial: 'active',
       invoke: {
         src: () => {
@@ -606,7 +595,7 @@ describe('legend useMachine test', () => {
 
   test('child component should be able to send an event to a parent immediately in an effect', () =>
     new Promise<void>((done) => {
-      const machine = createMachine<any, { type: 'FINISH' }>({
+      const machine = createObservableMachine<any, { type: 'FINISH' }>({
         initial: 'active',
         states: {
           active: {
@@ -640,17 +629,17 @@ describe('legend useMachine test', () => {
     }));
 
   test('custom data should be available right away for the invoked actor', () => {
-    const childMachine = createMachine({
+    const childMachine = createObservableMachine({
       initial: 'intitial',
-      context: createContext({
+      context: {
         value: 100,
-      }),
+      },
       states: {
         intitial: {},
       },
     });
 
-    const machine = createMachine({
+    const machine = createObservableMachine({
       initial: 'active',
       states: {
         active: {
@@ -682,7 +671,7 @@ describe('legend useMachine test', () => {
   // https://github.com/statelyai/xstate/issues/1334
   test('delayed transitions should work when initializing from a rehydrated state', () => {
     vitest.useFakeTimers();
-    const testMachine = createMachine<any, { type: 'START' }>({
+    const testMachine = createObservableMachine<any, { type: 'START' }>({
       id: 'app',
       initial: 'idle',
       states: {
@@ -729,7 +718,7 @@ describe('legend useMachine test', () => {
   test('should accept a lazily created machine', () => {
     const App = () => {
       const [state] = useMachine(() =>
-        createMachine({
+        createObservableMachine({
           initial: 'idle',
           states: {
             idle: {},
@@ -746,11 +735,11 @@ describe('legend useMachine test', () => {
   });
 
   test('should not miss initial synchronous updates', () => {
-    const m = createMachine<Observable<{ count: number }>>({
+    const m = createObservableMachine<{ count: number }>({
       initial: 'idle',
-      context: createContext({
+      context: {
         count: 0,
-      }),
+      },
       entry: [assign((c) => c.assign({ count: 1 })), send('INC')],
       on: {
         INC: {

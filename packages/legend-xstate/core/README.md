@@ -4,30 +4,33 @@
 
 # legend-xstate (Legend-State + XState)
 
+- Observable and Computed context
+- Optimized React hooks
+- A supporting test suite
+
 Provides a core library (`legend-xstate`) usable with vanilla `xstate` and a React sub-library (`legend-xstate/react`) with XState React hooks optimized for Legend-State
 
-[CodeSandbox Demo](https://codesandbox.io/s/legend-xstate-example-czqmzv?file=/src/ComputedExample.jsx)/
+[CodeSandbox Demo](https://codesandbox.io/s/legend-xstate-example-czqmzv?file=/src/ComputedExample.jsx)\
 [![NPM](https://nodei.co/npm/legend-xstate.png)](https://www.npmjs.com/package/legend-xstate)
 
 Please see the [XState](https://xstate.js.org/docs/guides/start.html#our-first-machine) and [Legend-State](https://legendapp.com/open-source/state/) docs if you're not already familiar with either library.
 
 ```typescript
 import { interpret } from 'xstate';
-import { createContext } from 'legend-xstate';
+import { computed } from '@legendapp/state';
+import { createObservableMachine } from 'legend-xstate';
 
-const countMachine = createMachine({
+const countMachine = createObservableMachine<{ count: number; computed: { doubled: number; doubledDoubled: number } }>({
   initial: 'start',
-  context: createContext(
-    // Observable context
-    {
-      count: 0,
-    },
-    // Create computed values in context
-    (context) => ({
-      doubled: computed(() => context.count.get() * 2),
-      doubledDoubled: computed(() => context.computed.doubled.get() * 2),
-    })
-  ),
+  // Automatically transformed into observable context
+  context: {
+    count: 0,
+  },
+  // Object with computed values that can reference context or other computed values
+  computed: (context) => ({
+    doubled: computed(() => context.count.get() * 2),
+    doubledDoubled: computed(() => context.computed.doubled.get() * 2),
+  }),
   states: {
     start: {
       on: {
@@ -44,9 +47,9 @@ const service = interpret(countMachine).start();
 
 service.send({ type: 'INC' });
 
-service.state.context.count; // 1
-service.state.context.computed.doubled; // 2
-service.state.context.computed.doubledDoubled; // 4
+service.state.context.count.peek(); // 1
+service.state.context.computed.doubled.peek(); // 2
+service.state.context.computed.doubledDoubled.peek(); // 4
 ```
 
 Installation:
@@ -65,84 +68,83 @@ Required peer dependencies for `legend-xstate/react`:
 - [react](https://www.npmjs.com/package/react)
 - [@xstate/react](https://www.npmjs.com/package/@xstate/react)
 
-### Functions
+### `createObservableMachine`
 
-- `createContext(context, computed?): Context & {computed: Computed}`: Produces an observable context object with optional computed values. XState's context update flow requires the root context to be an object and not a Proxy, so `createContext` adds all the methods of an observable onto context.
-  - args:
-    - `context` XState context
-    - `computed` An optional callback function that provides the `Context` as a value and returns an object with computed values
-  - example:
-    ```typescript
-    const context = createContext(
-      // context
-      {
-        count: 1,
-      },
-      // computed callback
-      (context) => ({
-        doubled: computed(() => context.count.get() * 2),
-        doubledDoubled: computed(() => context.computed.doubled.get() * 2),
-      })
-    );
-    context.count; // 1
-    context.computed.doubled; // 2
-    ```
-- `assign`: Overrides XState's `assign` function to allow updates in the observable without the need to return a value.
+`createObservableMachine` is a replacement for XState's `createMachine` that turns `context` into an Observable and introduces a new `computed` config property.
 
-### Types
+- `context` is an object that is automatically transformed into an Observable.
+- `computed` is a callback function providing the machine's `context` and should return an object with `computed` values from Legend-State.
 
-- `Context<TypeContext, TypeComputed>`: A generic accepting the shape of the context object and optionally the shape of the computed object. The computed object is optional because it is not required to use Legend-State in XState.
-  - example:
-    ```typescript
-    createMachine<Context<{ count: number }, { doubled: number }>>({
-      context: createContext({
-        count: observable(1),
-        computed: (context) => ({
-          doubled: computed(() => context.count.get() * 2),
-        }),
-      }),
-    });
-    ```
+`computed` values are mapped to `context.computed`
+
+```typescript
+import { createObservableMachine } from 'legend-xstate';
+import { computed } from '@legendapp/state';
+
+const machine = createObservableMachine<{count: number; computed: {doubled: number}}>({
+  initial: 'idle',
+  context: { count: 1 },
+  computed: (context) => ({
+    doubled: computed(() => context.count.get() * 2),
+  }),
+  states: {},
+});
+```
+
+### `ObservableContext<TypeContext, TypeComputed>`
+A helper generic type accepting the shape of the context object and optionally the shape of the computed object.
+
+```typescript
+import { ObservableContext, createObservableMachine } from 'legend-xstate';
+
+createObservableMachine<ObservableContext<{ count: number }, { doubled: number }>>({
+  context: { count: 1 },
+  computed: (context) => ({
+    doubled: computed(() => context.count.get() * 2),
+  }),
+});
+```
+
+### `assign`
+
+Overrides XState's `assign` function to allow updates in the observable without the need to return a value.
+
+```typescript
+// context { count: 0 }
+const actions = {
+  inc: assign((context) => context.count.set((c) => c + 1)),
+  dec: assign((context) => context.count.set((c) => c - 1)),
+};
+```
+
+### Helpers
+
+- `observableContext(context, computed?): Context & {computed: Computed}`: Produces an observable context object with optional computed values. XState's context update flow requires the root context to be an object and not a Proxy, so `observableContext` adds all the methods of an observable onto context. It is recommended to use `createObservableMachine` before using `observableContext`
+- args:
+  - `context` XState context
+  - `computed` An optional callback function that provides the `Context` as a value and returns an object with computed values
+
+```typescript
+const context = observableContext(
+  // context
+  {
+    count: 1,
+  },
+  // computed callback
+  (context) => ({
+    doubled: computed(() => context.count.get() * 2),
+    doubledDoubled: computed(() => context.computed.doubled.get() * 2),
+  })
+);
+context.count.peek(); // 1
+context.computed.doubled.peek(); // 2
+```
 
 ### Notes
 
 - Actors need to be wrapped in `opaqueObject` from `@legendapp/state` if they are stored in context
 - If a computed is returning an `Observable` rather than the base value, the type passed into `Context` must be wrapped in `ObservableValue`. (I'm looking into ways to make this less annoying)
 - `context` is a pseudo observable, meaning it's not a Proxy, but it has the same methods as an observable. This shouldn't cause any issues (except you'll need to use `state.context.get()` in React when rendering the root context object), but it's worth noting.
-
-### Example
-
-```typescript
-import { createContext, assign, Context } from 'legend-xstate';
-import { interpret } from 'xstate';
-// Wrap context type in `Observable` generic
-const counterMachine = createMachine<Context<{ count: number }>>(
-  {
-    initial: 'active',
-    // Use `createContext` to produce something similar to `observable({count: 0})`
-    context: createContext({ count: 0 }),
-    states: {
-      active: {
-        on: {
-          INC: { actions: 'inc' },
-          DEC: { actions: 'dec' },
-        },
-      },
-    },
-  },
-  {
-    actions: {
-      // `assign` overrides xstate's `assign` to disregard the return value
-      inc: assign((context) => context.count.set((c) => c + 1)),
-      dec: assign((context) => context.count.set((c) => c - 1)),
-    },
-  }
-);
-
-const service = interpret(counterMachine).start();
-// Access the observable context
-service.state.context;
-```
 
 ## legend-xstate/react (Legend-State + XState)
 
@@ -170,18 +172,17 @@ const Counter = observer(() => {
   // the full component will never re-render because `state.value` never changed
   const [state, send] = useMachine(counterMachine);
   return (
-    <div>
-      count is {state.context.count} // Changes to count will not rerender the whole component
-      <button onClick={() => send({ type: 'INC' })}>INC</button>
-      <button onClick={() => send({ type: 'DEC' })}>DEC</button>
-    </div>
+          <div>
+            count is {state.context.count} // Changes to count will not rerender the whole component
+            <button onClick={() => send({ type: 'INC' })}>INC</button>
+            <button onClick={() => send({ type: 'DEC' })}>DEC</button>
+          </div>
   );
 });
 ```
 
 #### TODO
 
-- Make typing the machine easier with observable & computed values.
 - Add more tests
 - Better docs
 

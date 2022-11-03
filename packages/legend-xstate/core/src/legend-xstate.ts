@@ -1,7 +1,8 @@
+import type { Observable, ObservableComputed } from '@legendapp/state';
 import { observable } from '@legendapp/state';
 import type { Assigner, EventObject, AssignAction, LowInfer } from 'xstate';
 import { assign as xstateAssign } from 'xstate';
-import type { ContextReturn, ObservableValue, ToObservableComputed } from './types';
+import type { ObservableContextComputed, ToObservableComputed } from './types';
 
 /**
  * Assign that returns context for you
@@ -17,31 +18,24 @@ export const assign = <TContext, TEvent extends EventObject = EventObject>(
 };
 
 /**
- *
- * @param context The context that will be converted into a store
- * @param computed A callback that returns an object with computed properties
+ * Transforms context into observable with an optional second argument to create computed values
+ * @param context {TContext} An XState context object
+ * @param computed {(ctx: TContext) => Record<PropertyKey, unknown>} A callback with a context argument which should return an object with computed values
  */
-export function createContext<TContext>(context: TContext): ContextReturn<TContext, undefined>;
-export function createContext<
+export function observableContext<
   TContext,
-  Computed extends Record<PropertyKey, unknown> | undefined,
-  ComputedFunc extends (context: LowInfer<ObservableValue<TContext>>  & {computed: LowInfer<Computed>}) => Computed = (
-    context: LowInfer<ObservableValue<TContext>> & {computed: LowInfer<Computed>}
-  ) => Computed
+  TComputed extends Record<PropertyKey, ObservableComputed> = 'computed' extends keyof TContext
+    ? ToObservableComputed<TContext['computed']>
+    : any,
+  Context = 'computed' extends keyof TContext ? Omit<TContext, 'computed'> : TContext
 >(
-  context: TContext,
-  computed: ComputedFunc
-): ContextReturn<TContext, Computed>;
-export function createContext<TContext, Computed extends Record<PropertyKey, unknown> | undefined>(
-  ...args:
-    | [TContext]
-    | [TContext, (context: LowInfer<ObservableValue<TContext>> & { computed: LowInfer<Computed> }) => Computed]
-    | [TContext, ((context: LowInfer<ObservableValue<TContext>> & { computed: LowInfer<Computed> }) => Computed)?]
-): ContextReturn<
-  TContext,
-  ToObservableComputed<Computed extends (context: LowInfer<ObservableValue<TContext>>) => infer C ? C : Computed>
-> {
-  const [context, computed] = args;
+  context: LowInfer<Context>,
+  computed?: (
+    context: LowInfer<Observable<Context>> & {
+      computed: 'computed' extends keyof TContext ? ToObservableComputed<TContext['computed']> : unknown;
+    }
+  ) => TComputed
+): ObservableContextComputed<Context, TComputed> {
   const obs: any = observable(context);
   const store = {
     ...obs,

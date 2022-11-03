@@ -397,9 +397,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@legendapp/state@npm:^0.21.7":
-  version: 0.21.7
-  resolution: "@legendapp/state@npm:0.21.7"
+"@legendapp/state@npm:^0.21.8":
+  version: 0.21.8
+  resolution: "@legendapp/state@npm:0.21.8"
   peerDependencies:
     react: ">=16.8"
     react-native: ">=0.61"
@@ -411,7 +411,7 @@ __metadata:
       optional: true
     react-native-mmkv:
       optional: true
-  checksum: 13fb08acd0abc0c72fce2fce36ad93a300d90c4ab37c5867b166489013cc89b496bc13f6becb2d5084c7fd9e234d8880c18b1b8f1904f012f2284f316217f6e5
+  checksum: fc1b4d33d84a4570292cc18f13a07f1118d41629984bd28161922c44e7fd6f9fd6700430e69d600b308910415b8fb9ba78839be74a35d602e190561c84a7cead
   languageName: node
   linkType: hard
 
@@ -2160,7 +2160,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "legend-xstate-react@workspace:packages/legend-xstate/react"
   dependencies:
-    "@legendapp/state": ^0.21.7
+    "@legendapp/state": ^0.21.8
     "@testing-library/react": ^13.4.0
     "@types/react": ^18.0.21
     "@types/react-dom": ^18.0.6
@@ -2181,7 +2181,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "legend-xstate@workspace:packages/legend-xstate/core"
   dependencies:
-    "@legendapp/state": ^0.21.7
+    "@legendapp/state": ^0.21.8
     prettier: ^2.7.1
     typescript: ^4.8.4
     vite: ^3.2.0
