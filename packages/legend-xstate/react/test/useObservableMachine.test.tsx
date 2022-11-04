@@ -27,13 +27,13 @@ import { fireEvent, screen, render, act } from '@testing-library/react';
 import * as React from 'react';
 import { AnyState, DoneEventObject, doneInvoke, Interpreter, InterpreterFrom, send, spawn, State } from 'xstate';
 import { assign, createObservableMachine } from 'legend-xstate';
-import { useActor, useMachine } from '../src';
+import { useObservableActor, useObservableMachine } from '../src';
 import { FC, useCallback, useState } from 'react';
 import { vitest } from 'vitest';
 import { opaqueObject } from '@legendapp/state';
 import { observer } from '@legendapp/state/react-components';
 
-describe('legend useMachine test', () => {
+describe('legend useObservableMachine test', () => {
   const context = {
     data: undefined,
   };
@@ -71,7 +71,7 @@ describe('legend useMachine test', () => {
     onFetch: () => Promise<any>;
     persistedState?: AnyState;
   }> = ({ onFetch = () => new Promise((res) => res('some data')), persistedState }) => {
-    const [current, send] = useMachine(fetchMachine, {
+    const [current, send] = useObservableMachine(fetchMachine, {
       services: {
         fetchData: onFetch,
       },
@@ -127,7 +127,7 @@ describe('legend useMachine test', () => {
 
   test('should provide the service', () => {
     const Test = () => {
-      const [, , service] = useMachine(fetchMachine);
+      const [, , service] = useObservableMachine(fetchMachine);
 
       if (!(service instanceof Interpreter)) {
         throw new Error('service not instance of Interpreter');
@@ -141,7 +141,7 @@ describe('legend useMachine test', () => {
 
   test('should provide options for the service', () => {
     const Test = () => {
-      const [, , service] = useMachine(fetchMachine, {
+      const [, , service] = useObservableMachine(fetchMachine, {
         execute: false,
       });
 
@@ -166,7 +166,7 @@ describe('legend useMachine test', () => {
     });
 
     const Test = () => {
-      const [state] = useMachine(testMachine, { context: { test: true } });
+      const [state] = useObservableMachine(testMachine, { context: { test: true } });
       expect(state.context.get()).toEqual({
         foo: 'bar',
         test: true,
@@ -200,7 +200,7 @@ describe('legend useMachine test', () => {
       });
 
       const Spawner = () => {
-        const [current] = useMachine(spawnMachine);
+        const [current] = useObservableMachine(spawnMachine);
 
         switch (current.value) {
           case 'start':
@@ -239,7 +239,7 @@ describe('legend useMachine test', () => {
           done();
         }, [ext]);
 
-        const [, send] = useMachine(toggleMachine, {
+        const [, send] = useObservableMachine(toggleMachine, {
           actions: {
             doAction,
           },
@@ -305,7 +305,7 @@ describe('legend useMachine test', () => {
     const ServiceApp: React.FC<{
       service: InterpreterFrom<typeof machine>;
     }> = ({ service }) => {
-      const [state] = useActor(service);
+      const [state] = useObservableActor(service);
 
       if (state.matches('loaded')) {
         const name = state.context.user?.get()?.name;
@@ -321,7 +321,7 @@ describe('legend useMachine test', () => {
     };
 
     const App = () => {
-      const [state, , service] = useMachine(machine);
+      const [state, , service] = useObservableMachine(machine);
 
       if (state.matches('loaded')) {
         const name = state.context.user?.get()?.name;
@@ -352,7 +352,7 @@ describe('legend useMachine test', () => {
     });
 
     const App = () => {
-      useMachine(machine);
+      useObservableMachine(machine);
       return null;
     };
 
@@ -380,7 +380,7 @@ describe('legend useMachine test', () => {
     );
 
     const App = () => {
-      const [_state, send] = useMachine(machine);
+      const [_state, send] = useObservableMachine(machine);
       React.useEffect(() => {
         send({ type: 'EV' });
       }, []);
@@ -421,7 +421,7 @@ describe('legend useMachine test', () => {
     );
 
     const App = () => {
-      const [_state, send] = useMachine(machine);
+      const [_state, send] = useObservableMachine(machine);
       React.useEffect(() => {
         send({ type: 'EV' });
       }, []);
@@ -463,7 +463,7 @@ describe('legend useMachine test', () => {
     );
 
     const App = () => {
-      const [_state, send] = useMachine(machine);
+      const [_state, send] = useObservableMachine(machine);
       React.useEffect(() => {
         send({ type: 'EV' });
       }, []);
@@ -505,7 +505,7 @@ describe('legend useMachine test', () => {
     );
 
     const App = () => {
-      const [state, send] = useMachine(machine);
+      const [state, send] = useObservableMachine(machine);
       return (
         <>
           <div data-testid="result">{state.value.toString()}</div>
@@ -545,7 +545,7 @@ describe('legend useMachine test', () => {
     });
 
     const App = ({ isAwesome }: { isAwesome: boolean }) => {
-      const [state, send] = useMachine(machine, {
+      const [state, send] = useObservableMachine(machine, {
         guards: {
           isAwesome: () => isAwesome,
         },
@@ -583,7 +583,7 @@ describe('legend useMachine test', () => {
     });
 
     const Test = () => {
-      useMachine(machine);
+      useObservableMachine(machine);
 
       return null;
     };
@@ -616,7 +616,7 @@ describe('legend useMachine test', () => {
       };
 
       const Test = () => {
-        const [state, send] = useMachine(machine);
+        const [state, send] = useObservableMachine(machine);
 
         if (state.matches('success')) {
           done();
@@ -657,8 +657,8 @@ describe('legend useMachine test', () => {
     });
 
     const Test = () => {
-      const [state] = useMachine(machine);
-      const [childState] = useActor(state.children.test);
+      const [state] = useObservableMachine(machine);
+      const [childState] = useObservableActor(state.children.test);
 
       expect(childState.context.store.value).toBe(42);
 
@@ -694,7 +694,7 @@ describe('legend useMachine test', () => {
     let currentState: State<any, any, any, any, any>;
 
     const Test = () => {
-      const [state, send] = useMachine(testMachine, {
+      const [state, send] = useObservableMachine(testMachine, {
         state: State.create(JSON.parse(persistedState)),
       });
 
@@ -717,7 +717,7 @@ describe('legend useMachine test', () => {
 
   test('should accept a lazily created machine', () => {
     const App = () => {
-      const [state] = useMachine(() =>
+      const [state] = useObservableMachine(() =>
         createObservableMachine({
           initial: 'idle',
           states: {
@@ -752,7 +752,7 @@ describe('legend useMachine test', () => {
     });
 
     const App = observer(() => {
-      const [state] = useMachine(m);
+      const [state] = useObservableMachine(m);
       return <>{state.context.count.get()}</>;
     });
 

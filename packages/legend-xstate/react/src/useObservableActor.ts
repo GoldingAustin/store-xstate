@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 import type { ActorRef, EventObject, Sender } from 'xstate';
-import { useService } from './useService';
+import { useObservableService } from './useObservableService';
 import { useCallback, useLayoutEffect, useRef } from 'react';
 
 type EmittedFromActorRef<TActor extends ActorRef<any, any>> = TActor extends ActorRef<any, infer TEmitted>
@@ -37,15 +37,15 @@ function defaultGetSnapshot<TEmitted>(actorRef: ActorRef<any, TEmitted>): TEmitt
   return 'getSnapshot' in actorRef ? actorRef.getSnapshot() : 'state' in actorRef ? (actorRef as any).state : undefined;
 }
 
-export function useActor<TActor extends ActorRef<any, any>>(
+export function useObservableActor<TActor extends ActorRef<any, any>>(
   actorRef: TActor,
   getSnapshot?: (actor: TActor) => EmittedFromActorRef<TActor>
 ): [EmittedFromActorRef<TActor>, TActor['send']];
-export function useActor<TEvent extends EventObject, TEmitted>(
+export function useObservableActor<TEvent extends EventObject, TEmitted>(
   actorRef: ActorRef<TEvent, TEmitted>,
   getSnapshot?: (actor: ActorRef<TEvent, TEmitted>) => TEmitted
 ): [TEmitted, Sender<TEvent>];
-export function useActor(
+export function useObservableActor(
   actorRef: ActorRef<EventObject, unknown>,
   getSnapshot: (actor: ActorRef<EventObject, unknown>) => unknown = defaultGetSnapshot
 ): [unknown, Sender<EventObject>] {
@@ -77,6 +77,6 @@ export function useActor(
     }
   }, [actorRef]);
 
-  const [state] = useService(actorRef as any, boundGetSnapshot);
+  const [state] = useObservableService(actorRef as any, boundGetSnapshot);
   return [state, send];
 }

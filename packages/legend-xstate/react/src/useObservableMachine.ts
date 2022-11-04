@@ -3,7 +3,7 @@ import { useMachine as xstateUseMachine } from '@xstate/react/lib/useMachine';
 import { useMemo } from 'react';
 import { observableContext } from 'legend-xstate';
 import { useInterpret } from '@xstate/react';
-import { useService } from './useService';
+import { useObservableService } from './useObservableService';
 import type { Observable } from '@legendapp/state';
 
 const isObservableContext = (context: any) => {
@@ -11,7 +11,7 @@ const isObservableContext = (context: any) => {
 };
 const getOverrideContext = (context: Observable, newContext: Observable | any) =>
   observableContext({ ...context.peek(), ...(isObservableContext(newContext) ? newContext.peek() : newContext) });
-export const useMachine = <Machine extends AnyStateMachine>(
+export const useObservableMachine = <Machine extends AnyStateMachine>(
   machine: Parameters<typeof xstateUseMachine<Machine>>[0],
   options: Parameters<
     typeof xstateUseMachine<
@@ -37,5 +37,5 @@ export const useMachine = <Machine extends AnyStateMachine>(
     return options;
   }, [options]);
   const service = useInterpret(machine, opts);
-  return useService(service) as ReturnType<typeof xstateUseMachine<Machine>>;
+  return useObservableService(service) as ReturnType<typeof xstateUseMachine<Machine>>;
 };

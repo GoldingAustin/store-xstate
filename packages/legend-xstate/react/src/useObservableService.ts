@@ -5,7 +5,7 @@ import { useSelector as useXstateSelector } from '@xstate/react';
 function isPrimitive(value: unknown): boolean {
   return value === null || (typeof value !== 'function' && typeof value !== 'object');
 }
-export const useService = <Service extends AnyInterpreter>(service: Service, getSnapshot?: any) => {
+export const useObservableService = <Service extends AnyInterpreter>(service: Service, getSnapshot?: any) => {
   const state = useXstateSelector(
     service,
     (state) => state,

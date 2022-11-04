@@ -81,7 +81,7 @@ Required peer dependencies for `legend-xstate/react`:
 import { createObservableMachine } from 'legend-xstate';
 import { computed } from '@legendapp/state';
 
-const machine = createObservableMachine<{count: number; computed: {doubled: number}}>({
+const machine = createObservableMachine<{ count: number; computed: { doubled: number } }>({
   initial: 'idle',
   context: { count: 1 },
   computed: (context) => ({
@@ -92,6 +92,7 @@ const machine = createObservableMachine<{count: number; computed: {doubled: numb
 ```
 
 ### `ObservableContext<TypeContext, TypeComputed>`
+
 A helper generic type accepting the shape of the context object and optionally the shape of the computed object.
 
 ```typescript
@@ -148,29 +149,29 @@ context.computed.doubled.peek(); // 2
 
 ## legend-xstate/react (Legend-State + XState)
 
-`legend-xstate/react` Exports optimized versions of `useMachine` and `useActor` that only rerender when absolutely necessary. Components using machines/actors have the same fine-grained reactivity from as you'd expect with `Legend-State`, a Component only rerenders when the `state.value` changes; `state.can`, `state.matches`, `state.hasTags`, etc. are run accordingly.
+`legend-xstate/react` Exports optimized versions of `useMachine` and `useActor` from `@xstate/react` as `useObservableMachine` and `useObservableActor` that only rerender when absolutely necessary. Components using machines/actors have the same fine-grained reactivity from as you'd expect with `Legend-State`, a Component only rerenders when the `state.value` changes; `state.can`, `state.matches`, `state.hasTags`, etc. are run accordingly.
 You can still use `useMachine` and `useActor` from `@xstate/react` but will lose out on more optimized component rerenders without manual memoization.
 
 It's important to wrap your components in `@legendapp/state`'s `observer` wrapper.
 
-The tests for `useMachine` and `useActor` are all ported from `@xstate/react` (thanks `@xstate/react` team :))
+The tests for `useObservableMachine` and `useObservableActor` are all ported from `@xstate/react` (thanks `@xstate/react` team :))
 
 ### Hooks
 
-- `useActor`: Optimized version of `@xstate/react`'s `useActor` with the same inputs and outputs.
-- `useMachine`: Optimized version of `@xstate/react`'s `useMachine` with the same inputs and outputs.
+- `useObservableActor`: Optimized version of `@xstate/react`'s `useActor` with the same inputs and outputs.
+- `useObservableMachine`: Optimized version of `@xstate/react`'s `useMachine` with the same inputs and outputs.
 
 ### Example
 
 ```typescript jsx
 import { observer, enableLegendStateReact } from '@legendapp/state/react';
-import { useMachine } from 'legend-xstate/react';
+import { useObservableMachine } from 'legend-xstate/react';
 enableLegendStateReact();
 
 const Counter = observer(() => {
   // Using the same machine as above, optimized to take full advantage of `@legendapp/state/react`'s performance.
   // the full component will never re-render because `state.value` never changed
-  const [state, send] = useMachine(counterMachine);
+  const [state, send] = useObservableMachine(counterMachine);
   return (
           <div>
             count is {state.context.count} // Changes to count will not rerender the whole component

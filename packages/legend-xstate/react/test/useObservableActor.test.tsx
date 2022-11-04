@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import { useActor, useMachine } from '../src';
+import { useObservableActor, useObservableMachine } from '../src';
 import { ActorRef, ActorRefFrom, interpret, sendParent, spawn, toActorRef } from 'xstate';
 import React, { FC, useEffect, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
@@ -32,7 +32,7 @@ import { vitest } from 'vitest';
 import { observer } from '@legendapp/state/react-components';
 import { opaqueObject } from '@legendapp/state';
 
-describe('legend useActor test', () => {
+describe('legend useObservableActor test', () => {
   test('initial invoked actor should be immediately available', () =>
     new Promise<void>((done) => {
       const childMachine = createObservableMachine({
@@ -54,7 +54,7 @@ describe('legend useActor test', () => {
       });
 
       const ChildTest: FC<{ actor: ActorRefFrom<typeof childMachine> }> = observer(({ actor }) => {
-        const [state] = useActor(actor);
+        const [state] = useObservableActor(actor);
 
         expect(state.value).toEqual('active');
 
@@ -64,7 +64,7 @@ describe('legend useActor test', () => {
       });
 
       const Test = observer(() => {
-        const [state] = useMachine(machine);
+        const [state] = useObservableMachine(machine);
 
         return <ChildTest actor={state.children.child as ActorRefFrom<typeof childMachine>} />;
       });
@@ -100,7 +100,7 @@ describe('legend useActor test', () => {
       });
 
       const ChildTest: FC<{ actor: ActorRefFrom<typeof childMachine> }> = ({ actor }) => {
-        const [state, send] = useActor(actor);
+        const [state, send] = useObservableActor(actor);
 
         expect(state.value).toEqual('active');
 
@@ -112,7 +112,7 @@ describe('legend useActor test', () => {
       };
 
       const Test = () => {
-        const [state] = useMachine(machine);
+        const [state] = useObservableMachine(machine);
 
         if (state.matches('success')) {
           done();
@@ -153,7 +153,7 @@ describe('legend useActor test', () => {
       });
 
       const ChildTest: React.FC<{ actor: ActorRefFrom<typeof childMachine> }> = ({ actor }) => {
-        const [state] = useActor(actor);
+        const [state] = useObservableActor(actor);
 
         expect(state.value).toEqual('active');
 
@@ -163,7 +163,7 @@ describe('legend useActor test', () => {
       };
 
       const Test = () => {
-        const [state] = useMachine(machine);
+        const [state] = useObservableMachine(machine);
         const { actorRef } = state.context;
 
         return <ChildTest actor={actorRef?.get()!} />;
@@ -204,7 +204,7 @@ describe('legend useActor test', () => {
       });
 
       const ChildTest: React.FC<{ actor: ActorRefFrom<typeof childMachine> }> = observer(({ actor }) => {
-        const [state, send] = useActor(actor);
+        const [state, send] = useObservableActor(actor);
 
         expect(state.value).toEqual('active');
 
@@ -216,7 +216,7 @@ describe('legend useActor test', () => {
       });
 
       const Test = observer(() => {
-        const [state] = useMachine(machine);
+        const [state] = useObservableMachine(machine);
 
         if (state.matches('success')) {
           done();
@@ -246,7 +246,7 @@ describe('legend useActor test', () => {
     };
 
     const Test = () => {
-      const [state] = useActor(simpleActor, (a) => a.latestValue);
+      const [state] = useObservableActor(simpleActor, (a) => a.latestValue);
 
       return <div data-testid="state">{state}</div>;
     };
@@ -275,7 +275,7 @@ describe('legend useActor test', () => {
     });
 
     const Test = () => {
-      const [state] = useActor(simpleActor);
+      const [state] = useObservableActor(simpleActor);
 
       return <div data-testid="state">{state}</div>;
     };
@@ -305,7 +305,7 @@ describe('legend useActor test', () => {
 
     const Test = observer(() => {
       const [actor, setActor] = useState(createSimpleActor(42));
-      const [state] = useActor(actor, (a) => a.latestValue);
+      const [state] = useObservableActor(actor, (a) => a.latestValue);
 
       return (
         <>
@@ -351,7 +351,7 @@ describe('legend useActor test', () => {
 
       const Test = () => {
         const [actor, setActor] = useState(firstActor);
-        const [, send] = useActor(actor);
+        const [, send] = useObservableActor(actor);
 
         React.useEffect(() => {
           setTimeout(() => {
@@ -409,7 +409,7 @@ describe('legend useActor test', () => {
     const counterService = interpret(counterMachine).start();
 
     const Counter = observer(() => {
-      const [state, send] = useActor(counterService);
+      const [state, send] = useObservableActor(counterService);
 
       return (
         <div
@@ -476,8 +476,8 @@ describe('legend useActor test', () => {
     });
 
     const App = observer(() => {
-      const [state] = useMachine(machine);
-      const [childState, childSend] = useActor(state.context.ref.get());
+      const [state] = useObservableMachine(machine);
+      const [childState, childSend] = useObservableActor(state.context.ref.get());
 
       return (
         <>
