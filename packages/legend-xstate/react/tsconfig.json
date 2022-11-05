@@ -3,10 +3,7 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
+    "lib": ["ESNext", "DOM"],
     "baseUrl": "./src",
     "moduleResolution": "Node",
     "strict": true,
@@ -21,22 +18,12 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "types": [
-      "vitest/globals"
-    ],
-    "typeRoots": [
-      "../core/react/types"
-    ],
+    "types": ["vitest/globals"],
+    "typeRoots": ["../core/react/types"],
     "paths": {
-      "legend-xstate": [
-        "../../core"
-      ]
+      "legend-xstate": ["../../core"]
     }
   },
-  "exclude": [
-    "./types"
-  ],
-  "include": [
-    "src"
-  ]
+  "exclude": ["./types"],
+  "include": ["src"]
 }

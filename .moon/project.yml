@@ -15,7 +15,7 @@ $schema: 'https://moonrepo.dev/schemas/global-project.json'
 fileGroups:
   # List of configuration files located within the project root.
   configs:
-    - '*.{js,json}'
+    - '*.{js,json,ts}'
 
   # List of non-test source files.
   sources:
@@ -42,13 +42,36 @@ fileGroups:
 # This setting requires a map, where the key is a unique name for the task,
 # and the value is an object of task parameters.
 tasks:
-  vite-build:
-    command: 'vite build'
+  format:
+    command: 'prettier --write .'
     inputs:
       - '@globs(sources)'
       - '@files(configs)'
-    outputs:
-      - 'dist'
+  build:
+    command: 'vite build'
+    deps:
+      - typecheck
+    inputs:
+      - '@globs(sources)'
+      - '@files(configs)'
+  typecheck:
+    command: tsc
+    inputs:
+      - '@globs(sources)'
+      - '@files(configs)'
+  dev:
+    command: vite
+    local: true
+    inputs:
+      - '@globs(sources)'
+      - '@files(configs)'
+  test:
+    inputs:
+      - '@globs(tests)'
+      - '@files(configs)'
+    command:
+      - vitest
+      - run
   # Name of the task.
   noop:
     # The name of the binary/command on your system.

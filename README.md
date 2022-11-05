@@ -41,6 +41,9 @@ const countMachine = createObservableMachine<{ count: number; computed: { double
           // Update context Legend-State's observable style
           action: assign((context) => context.count.set((c) => c + 1)),
         },
+        DEC: {
+          action: assign((context) => context.count.set((c) => c - 1)),
+        },
       },
     },
   },
@@ -172,7 +175,6 @@ import { useObservableMachine } from 'legend-xstate/react';
 enableLegendStateReact();
 
 const Counter = observer(() => {
-  // Using the same machine as above, optimized to take full advantage of `@legendapp/state/react`'s performance.
   // the full component will never re-render because `state.value` never changed
   const [state, send] = useObservableMachine(counterMachine);
   return (

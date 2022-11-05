@@ -12,11 +12,9 @@ import type {
 } from 'xstate';
 
 // Prevent literal types from causing problems, map undefined to any so undefined unions don't break
-
 export type ToObservableComputed<TComputed> = {
   [P in keyof TComputed]: TComputed[P] extends ObservableComputed ? TComputed[P] : ObservableComputed<TComputed[P]>;
 };
-export type ObservableValue<Value> = Observable<Value>;
 
 export type ToObservableContext<
   TContext,
@@ -53,7 +51,7 @@ export interface ObservableMachineConfig<
     TAction
   > {
   computed?: (
-    context: LowInfer<Observable<TTContext>> & {
+    context: Observable<LowInfer<TTContext>> & {
       computed: 'computed' extends keyof TContext ? ToObservableComputed<TContext['computed']> : unknown;
     }
   ) => TComputed;

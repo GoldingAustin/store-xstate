@@ -6,7 +6,7 @@ const entry = resolve(__dirname, 'src', 'index.ts');
 export default defineConfig({
   test: {
     globals: true,
-    environment:'jsdom'
+    environment: 'jsdom',
   },
   build: {
     emptyOutDir: true,

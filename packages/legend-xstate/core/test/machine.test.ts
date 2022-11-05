@@ -353,7 +353,7 @@ describe('Vanilla XState', () => {
         actions: {
           'set name': assign((store, event) => {
             if (event.type === 'set name') {
-              store.assign({first: event.first, last: event.last})
+              store.assign({ first: event.first, last: event.last });
             }
           }),
           'set father': assign((store, event) =>

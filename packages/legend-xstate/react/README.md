@@ -24,11 +24,11 @@ const Counter = observer(() => {
   // the full component will never re-render because `state.value` never changed
   const [state, send] = useObservableMachine(counterMachine);
   return (
-          <div>
-            count is {state.context.count} // Changes to count will not rerender the whole component
-            <button onClick={() => send({ type: 'INC' })}>INC</button>
-            <button onClick={() => send({ type: 'DEC' })}>DEC</button>
-          </div>
+    <div>
+      count is {state.context.count} // Changes to count will not rerender the whole component
+      <button onClick={() => send({ type: 'INC' })}>INC</button>
+      <button onClick={() => send({ type: 'DEC' })}>DEC</button>
+    </div>
   );
 });
 ```

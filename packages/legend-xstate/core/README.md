@@ -1,4 +1,3 @@
-
 [![Tree shaking support][badge-tree-shaking]][link-bundlephobia]
 [![Compressed package size][badge-size]][link-bundlephobia]
 
@@ -173,11 +172,11 @@ const Counter = observer(() => {
   // the full component will never re-render because `state.value` never changed
   const [state, send] = useObservableMachine(counterMachine);
   return (
-          <div>
-            count is {state.context.count} // Changes to count will not rerender the whole component
-            <button onClick={() => send({ type: 'INC' })}>INC</button>
-            <button onClick={() => send({ type: 'DEC' })}>DEC</button>
-          </div>
+    <div>
+      count is {state.context.count} // Changes to count will not rerender the whole component
+      <button onClick={() => send({ type: 'INC' })}>INC</button>
+      <button onClick={() => send({ type: 'DEC' })}>DEC</button>
+    </div>
   );
 });
 ```
@@ -188,7 +187,5 @@ const Counter = observer(() => {
 - Better docs
 
 [badge-size]: https://badgen.net/bundlephobia/minzip/legend-xstate
-[badge-tree-shaking]:
-https://badgen.net/bundlephobia/tree-shaking/legend-xstate
-[link-bundlephobia]:
-https://bundlephobia.com/package/legend-xstate
+[badge-tree-shaking]: https://badgen.net/bundlephobia/tree-shaking/legend-xstate
+[link-bundlephobia]: https://bundlephobia.com/package/legend-xstate

@@ -2,20 +2,5 @@
 language: typescript
 tasks:
   build:
-    command:
-      - vite
-      - build
     deps:
       - 'legend-xstate:build'
-      - 'legend-xstate-react:typecheck'
-  typecheck:
-    command: tsc
-  dev:
-    command: vite
-    local: true
-  test:
-    deps:
-      - 'legend-xstate:build'
-    command:
-      - vitest
-      - run
