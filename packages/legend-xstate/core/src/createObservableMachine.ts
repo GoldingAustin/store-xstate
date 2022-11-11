@@ -13,8 +13,14 @@ import type {
 } from 'xstate';
 import { createMachine as xstateCreateMachine } from 'xstate';
 import { observableContext } from './legend-xstate';
-import type { ObservableContext, ToObservableContext, ObservableMachineConfig, ToObservableComputed } from './types';
-import type { Observable, ObservableComputed } from '@legendapp/state';
+import type {
+  ObservableContext,
+  ToObservableContext,
+  Expand,
+  ObservableMachineConfig,
+  ToObservableComputed,
+} from './types';
+import type { Observable } from '@legendapp/state';
 /**
  * Creates an XState state machine with observable context and (optionally) computed values with the computed property
  * @param config {ObservableMachineConfig}
@@ -29,9 +35,9 @@ export function createObservableMachine<
   },
   TServiceMap extends ServiceMap = ServiceMap,
   TTypesMeta extends TypegenConstraint = TypegenDisabled,
-  TComputed extends Record<PropertyKey, ObservableComputed> = 'computed' extends keyof TContext
+  TComputed extends unknown | never = 'computed' extends keyof TContext
     ? ToObservableComputed<TContext['computed']>
-    : any
+    : never
 >(
   config: ObservableMachineConfig<TContext, any, TEvent, BaseActionObject, TServiceMap, TTypesMeta, TComputed>,
   options?: InternalMachineOptions<
@@ -47,10 +53,10 @@ export function createObservableMachine<
     ResolveTypegenMeta<TTypesMeta, TEvent, BaseActionObject, TServiceMap>
   >
 ): StateMachine<
-  ToObservableContext<TContext, TComputed>,
+  ToObservableContext<Expand<Omit<TContext, 'computed'>>, TComputed>,
   any,
   TEvent,
-  { value: TTypestate['value']; context: ToObservableContext<TContext, TComputed> },
+  { value: TTypestate['value']; context: ToObservableContext<Expand<Omit<TContext, 'computed'>>, TComputed> },
   BaseActionObject,
   TServiceMap,
   ResolveTypegenMeta<TTypesMeta, TEvent, BaseActionObject, TServiceMap>
@@ -64,9 +70,9 @@ export function createObservableMachine<
   },
   TServiceMap extends ServiceMap = ServiceMap,
   TTypesMeta extends TypegenConstraint = TypegenDisabled,
-  TComputed extends Record<PropertyKey, ObservableComputed> = 'computed' extends keyof TContext
+  TComputed extends unknown | never = 'computed' extends keyof TContext
     ? ToObservableComputed<TContext['computed']>
-    : any
+    : never
 >(
   config: ObservableMachineConfig<TContext, any, TEvent, BaseActionObject, TServiceMap, TTypesMeta, TComputed>,
   options?: MachineOptions<
@@ -84,10 +90,10 @@ export function createObservableMachine<
     TTypesMeta
   >
 ): StateMachine<
-  ToObservableContext<TContext, TComputed>,
+  ToObservableContext<Expand<Omit<TContext, 'computed'>>, TComputed>,
   any,
   TEvent,
-  { value: TTypestate['value']; context: ToObservableContext<TContext, TComputed> },
+  { value: TTypestate['value']; context: ToObservableContext<Expand<Omit<TContext, 'computed'>>, TComputed> },
   BaseActionObject,
   TServiceMap,
   TTypesMeta

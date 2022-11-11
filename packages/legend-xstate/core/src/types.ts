@@ -16,19 +16,27 @@ export type ToObservableComputed<TComputed> = {
   [P in keyof TComputed]: TComputed[P] extends ObservableComputed ? TComputed[P] : ObservableComputed<TComputed[P]>;
 };
 
-export type ToObservableContext<TContext, TComputed extends unknown = unknown> = Observable<
+export type ToObservableContext<TContext, TComputed extends unknown | never = never> = Observable<
   Expand<Omit<TContext, 'computed'>>
-> & {
-  computed: TComputed extends ToObservableComputed<TComputed> ? TComputed : ToObservableComputed<TComputed>;
-};
+> &
+  NotNever<{
+    computed: TComputed extends never
+      ? never
+      : TComputed extends ToObservableComputed<TComputed>
+      ? TComputed
+      : ToObservableComputed<TComputed>;
+  }>;
 
+type NotNever<U> = {
+  [K in keyof U as U[K] extends never | void ? never : K]: U[K];
+};
 export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 
-export type ObservableContext<TContext, TComputed extends unknown = unknown> = Expand<
-  Expand<Omit<TContext, 'computed'>> & {
-    computed: TComputed;
-  }
->;
+export type ObservableContext<TContext, TComputed extends unknown | never = never> = Expand<
+  Omit<TContext, 'computed'>
+> & {
+  computed: TComputed;
+};
 
 export type ObservableContextComputed<TContext, TComputed> = TContext extends undefined
   ? undefined
@@ -41,7 +49,7 @@ export interface ObservableMachineConfig<
   TAction extends BaseActionObject = BaseActionObject,
   TServiceMap extends ServiceMap = ServiceMap,
   TTypesMeta = TypegenDisabled,
-  TComputed extends Record<string, ObservableComputed> = Record<string, ObservableComputed>,
+  TComputed = Record<string, ObservableComputed>,
   TTContext = 'computed' extends keyof TContext ? Expand<Omit<TContext, 'computed'>> : TContext
 > extends StateNodeConfig<
     ObservableContextComputed<NoInfer<TTContext>, unknown>,
