@@ -13,7 +13,7 @@ import type {
 } from 'xstate';
 import { createMachine as xstateCreateMachine } from 'xstate';
 import { observableContext } from './legend-xstate';
-import type { ObservableContext, ObservableMachineConfig, ToObservableComputed } from './types';
+import type { ObservableContext, ToObservableContext, ObservableMachineConfig, ToObservableComputed } from './types';
 import type { Observable, ObservableComputed } from '@legendapp/state';
 /**
  * Creates an XState state machine with observable context and (optionally) computed values with the computed property
@@ -47,10 +47,10 @@ export function createObservableMachine<
     ResolveTypegenMeta<TTypesMeta, TEvent, BaseActionObject, TServiceMap>
   >
 ): StateMachine<
-  ObservableContext<Observable<Omit<TContext, 'computed'>>, TComputed>,
+  ToObservableContext<TContext, TComputed>,
   any,
   TEvent,
-  { value: TTypestate['value']; context: ObservableContext<Observable<Omit<TContext, 'computed'>>, TComputed> },
+  { value: TTypestate['value']; context: ToObservableContext<TContext, TComputed> },
   BaseActionObject,
   TServiceMap,
   ResolveTypegenMeta<TTypesMeta, TEvent, BaseActionObject, TServiceMap>
@@ -84,10 +84,10 @@ export function createObservableMachine<
     TTypesMeta
   >
 ): StateMachine<
-  ObservableContext<Observable<Omit<TContext, 'computed'>>, TComputed>,
+  ToObservableContext<TContext, TComputed>,
   any,
   TEvent,
-  { value: TTypestate['value']; context: ObservableContext<Observable<Omit<TContext, 'computed'>>, TComputed> },
+  { value: TTypestate['value']; context: ToObservableContext<TContext, TComputed> },
   BaseActionObject,
   TServiceMap,
   TTypesMeta

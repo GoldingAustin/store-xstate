@@ -16,20 +16,19 @@ export type ToObservableComputed<TComputed> = {
   [P in keyof TComputed]: TComputed[P] extends ObservableComputed ? TComputed[P] : ObservableComputed<TComputed[P]>;
 };
 
-export type ToObservableContext<
-  TContext,
-  TComputed extends unknown | undefined = undefined
-> = TComputed extends undefined
-  ? Observable<TContext>
-  : Observable<TContext> & {
-      computed: ToObservableComputed<TComputed>;
-    };
+export type ToObservableContext<TContext, TComputed extends unknown = unknown> = Observable<
+  Expand<Omit<TContext, 'computed'>>
+> & {
+  computed: TComputed extends ToObservableComputed<TComputed> ? TComputed : ToObservableComputed<TComputed>;
+};
 
-export type ObservableContext<TContext, TComputed extends unknown | undefined = undefined> = TComputed extends undefined
-  ? TContext
-  : TContext & {
-      computed: TComputed;
-    };
+export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
+
+export type ObservableContext<TContext, TComputed extends unknown = unknown> = Expand<
+  Expand<Omit<TContext, 'computed'>> & {
+    computed: TComputed;
+  }
+>;
 
 export type ObservableContextComputed<TContext, TComputed> = TContext extends undefined
   ? undefined
@@ -43,7 +42,7 @@ export interface ObservableMachineConfig<
   TServiceMap extends ServiceMap = ServiceMap,
   TTypesMeta = TypegenDisabled,
   TComputed extends Record<string, ObservableComputed> = Record<string, ObservableComputed>,
-  TTContext = 'computed' extends keyof TContext ? Omit<TContext, 'computed'> : TContext
+  TTContext = 'computed' extends keyof TContext ? Expand<Omit<TContext, 'computed'>> : TContext
 > extends StateNodeConfig<
     ObservableContextComputed<NoInfer<TTContext>, unknown>,
     TStateSchema,
@@ -51,9 +50,7 @@ export interface ObservableMachineConfig<
     TAction
   > {
   computed?: (
-    context: Observable<LowInfer<TTContext>> & {
-      computed: 'computed' extends keyof TContext ? ToObservableComputed<TContext['computed']> : unknown;
-    }
+    context: ToObservableContext<TTContext, 'computed' extends keyof TContext ? TContext['computed'] : unknown>
   ) => TComputed;
   /**
    * The initial context (extended state)

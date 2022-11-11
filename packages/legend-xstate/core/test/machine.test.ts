@@ -1,9 +1,8 @@
 /// <reference types="vitest/globals" />
 import { computed, opaqueObject } from '@legendapp/state';
 import { ActorRef, createMachine, interpret, send, sendParent, spawn } from 'xstate';
-import { assign, observableContext, ToObservableContext } from '../src';
+import { assign, observableContext, ToObservableContext, createObservableMachine } from '../src';
 import type { ObservableContext } from '../src';
-import { createObservableMachine } from '../src/createObservableMachine';
 
 describe('Vanilla XState', () => {
   test('update a primitive value no typings', () => {
